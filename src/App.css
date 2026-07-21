@@ -668,3 +668,15 @@ kbd {
   border-color: #7357ed;
   color: #fff;
 }
+
+.intelligence-button.active {
+  border-color: #7357ed;
+  color: #ddd6fe;
+  background: #30265e;
+}
+
+.intelligence-button.active {
+  border-color: #7357ed;
+  color: #ddd6fe;
+  background: #30265e;
+}

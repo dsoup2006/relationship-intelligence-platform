@@ -8,6 +8,8 @@ import './App.css'
 import { GraphCanvas } from './features/graph/GraphCanvas'
 import { NodeEditor } from './features/nodes/NodeEditor'
 import { RelationshipEditor } from './features/relationships/RelationshipEditor'
+import { IntelligencePanel } from './features/intelligence/IntelligencePanel'
+import { analyzeGraph } from './features/intelligence/analytics'
 import { useHistoryState } from './hooks/useHistoryState'
 import {
   createEmptyProject,
@@ -209,6 +211,9 @@ function App() {
   const [search, setSearch] =
     useState('')
 
+  const [showIntelligence, setShowIntelligence] =
+    useState(false)
+
   const [isLoaded, setIsLoaded] =
     useState(false)
 
@@ -219,6 +224,11 @@ function App() {
 
   const nodes = project.nodes
   const edges = project.edges
+
+  const analytics = useMemo(
+    () => analyzeGraph(nodes, edges),
+    [nodes, edges],
+  )
 
   useEffect(() => {
     const savedProject =
@@ -869,6 +879,21 @@ function App() {
               ↷ Redo
             </button>
 
+            <button
+              className={
+                showIntelligence
+                  ? 'intelligence-button active'
+                  : 'intelligence-button'
+              }
+              onClick={() =>
+                setShowIntelligence(
+                  (current) => !current,
+                )
+              }
+            >
+              ◈ Intelligence
+            </button>
+
             {connectSourceId ? (
               <>
                 <span className="connect-message">
@@ -970,7 +995,19 @@ function App() {
             </div>
           </div>
 
-          {selectedNode ? (
+          {showIntelligence ? (
+            <IntelligencePanel
+              analytics={analytics}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={(nodeId) => {
+                setSelectedNodeId(nodeId)
+                setSelectedEdgeId(null)
+              }}
+              onClose={() =>
+                setShowIntelligence(false)
+              }
+            />
+          ) : selectedNode ? (
             <NodeEditor
               node={selectedNode}
               onChange={updateNode}
