@@ -143,8 +143,8 @@ export function GraphCanvas({
         {
           selector: 'node.attribute-spoke',
           style: {
-            width: 34,
-            height: 34,
+            width: 'label',
+            height: 'label',
             shape: 'round-rectangle',
             label: 'data(label)',
             'font-size': 9,
@@ -153,11 +153,11 @@ export function GraphCanvas({
             'text-valign': 'center',
             'text-halign': 'center',
             'text-wrap': 'wrap',
-            'text-max-width': '105px',
+            'text-max-width': '135px',
             'background-color': '#334155',
             'border-width': 2,
             'border-color': '#64748b',
-            padding: '9px',
+            padding: '10px',
             'overlay-opacity': 0,
           },
         },
@@ -375,9 +375,19 @@ export function GraphCanvas({
       'drag',
       'node',
       (event) => {
-        moveNearbyNodesAway(
-          event.target,
-        )
+        const draggedNode = event.target
+
+        moveNearbyNodesAway(draggedNode)
+
+        if (
+          draggedNode.data('kind') !== 'attribute' &&
+          expandedNodeIds.has(draggedNode.id())
+        ) {
+          arrangeAttributeSpokes(
+            draggedNode.id(),
+            false,
+          )
+        }
       },
     )
 
@@ -385,9 +395,19 @@ export function GraphCanvas({
       'dragfree',
       'node',
       (event) => {
-        gentlySettleGraph(
-          event.target,
-        )
+        const draggedNode = event.target
+
+        if (
+          draggedNode.data('kind') !== 'attribute' &&
+          expandedNodeIds.has(draggedNode.id())
+        ) {
+          arrangeAttributeSpokes(
+            draggedNode.id(),
+            true,
+          )
+        }
+
+        gentlySettleGraph(draggedNode)
       },
     )
     const expandedNodeIds = new Set<string>()
@@ -398,6 +418,101 @@ export function GraphCanvas({
       }).remove()
 
       expandedNodeIds.delete(parentId)
+    }
+
+    function spokePosition(
+      parentPosition: { x: number; y: number },
+      index: number,
+      total: number,
+      label: string,
+    ) {
+      /*
+       * Use multiple rings so large amounts of information
+       * do not crowd together.
+       */
+      const maximumPerRing = 8
+      const ringIndex = Math.floor(index / maximumPerRing)
+      const firstIndexInRing = ringIndex * maximumPerRing
+      const remaining = total - firstIndexInRing
+      const itemsInRing = Math.min(maximumPerRing, remaining)
+      const indexInRing = index - firstIndexInRing
+
+      /*
+       * Longer labels get a slightly larger radius.
+       */
+      const labelAllowance = Math.min(label.length * 1.25, 65)
+      const radius = 155 + ringIndex * 115 + labelAllowance
+
+      const angle =
+        (Math.PI * 2 * indexInRing) / itemsInRing -
+        Math.PI / 2 +
+        (ringIndex % 2 === 1 ? Math.PI / itemsInRing : 0)
+
+      return {
+        x: parentPosition.x + Math.cos(angle) * radius,
+        y: parentPosition.y + Math.sin(angle) * radius,
+        angle,
+        radius,
+      }
+    }
+
+    function arrangeAttributeSpokes(
+      parentId: string,
+      animate = true,
+    ) {
+      const parentNode = cy.getElementById(parentId)
+
+      if (!parentNode.length) {
+        return
+      }
+
+      const parentPosition = parentNode.position()
+
+      const spokeNodes = cy
+        .nodes()
+        .filter(
+          (node) =>
+            node.data('kind') === 'attribute' &&
+            node.data('spokeParent') === parentId,
+        )
+        .toArray()
+
+      spokeNodes.forEach((spokeNode, index) => {
+        const target = spokePosition(
+          parentPosition,
+          index,
+          spokeNodes.length,
+          String(spokeNode.data('label') ?? ''),
+        )
+
+        const spokeNodeElement = spokeNode[0]
+
+        if (!spokeNodeElement || !spokeNodeElement.isNode()) {
+          return
+        }
+
+        if (animate) {
+          spokeNodeElement.stop()
+
+          spokeNodeElement.animate(
+            {
+              position: {
+                x: target.x,
+                y: target.y,
+              },
+            },
+            {
+              duration: 280,
+              easing: 'ease-out',
+            },
+          )
+        } else {
+          spokeNodeElement.position({
+            x: target.x,
+            y: target.y,
+          })
+        }
+      })
     }
 
     function expandAttributeSpokes(parentId: string) {
@@ -418,17 +533,14 @@ export function GraphCanvas({
       }
 
       const parentPosition = parentNode.position()
-      const radius = Math.max(125, 80 + spokes.length * 8)
 
       spokes.forEach((spoke, index) => {
-        const angle =
-          (Math.PI * 2 * index) / spokes.length -
-          Math.PI / 2
-
-        const targetPosition = {
-          x: parentPosition.x + Math.cos(angle) * radius,
-          y: parentPosition.y + Math.sin(angle) * radius,
-        }
+        const target = spokePosition(
+          parentPosition,
+          index,
+          spokes.length,
+          spoke.label,
+        )
 
         const spokeNode = cy.add({
           group: 'nodes',
@@ -438,12 +550,13 @@ export function GraphCanvas({
             category: spoke.category,
             kind: 'attribute',
             spokeParent: parentId,
+            spokeIndex: index,
           },
           position: {
             x: parentPosition.x,
             y: parentPosition.y,
           },
-          classes: 'attribute-spoke',
+          classes: `attribute-spoke attribute-${spoke.category}`,
           grabbable: false,
           selectable: false,
         })
@@ -462,10 +575,13 @@ export function GraphCanvas({
 
         spokeNode.animate(
           {
-            position: targetPosition,
+            position: {
+              x: target.x,
+              y: target.y,
+            },
           },
           {
-            duration: 320,
+            duration: 320 + index * 18,
             easing: 'ease-out',
           },
         )
