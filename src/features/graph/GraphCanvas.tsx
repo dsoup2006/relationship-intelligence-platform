@@ -153,7 +153,7 @@ export function GraphCanvas({
             'text-valign': 'center',
             'text-halign': 'center',
             'text-wrap': 'wrap',
-            'text-max-width': 105,
+            'text-max-width': '105px',
             'background-color': '#334155',
             'border-width': 2,
             'border-color': '#64748b',
