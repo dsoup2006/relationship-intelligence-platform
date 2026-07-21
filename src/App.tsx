@@ -1,37 +1,70 @@
 import { useMemo, useState } from 'react'
 import './App.css'
 import { GraphCanvas } from './features/graph/GraphCanvas'
-import type { GraphEdge, GraphNode, NodeType } from './types/graph'
+import { NodeEditor } from './features/nodes/NodeEditor'
+import type {
+  GraphEdge,
+  GraphNode,
+  NodeType,
+} from './types/graph'
+
+function makeNode(
+  id: string,
+  label: string,
+  type: NodeType,
+  gender: GraphNode['gender'] = 'unspecified',
+): GraphNode {
+  return {
+    id,
+    label,
+    type,
+    gender,
+    description: '',
+    photoUrl: '',
+    address: '',
+    city: '',
+    tags: [],
+    notes: '',
+    customFields: [],
+  }
+}
 
 const initialNodes: GraphNode[] = [
   {
-    id: 'person-drew',
-    label: 'Drew',
-    type: 'person',
-    gender: 'male',
-    description: 'Selected example person',
+    ...makeNode(
+      'person-drew',
+      'Drew',
+      'person',
+      'male',
+    ),
+    description: 'Example person node',
+    city: 'Cornelius',
+    tags: ['leadership', 'community'],
   },
   {
-    id: 'person-taylor',
-    label: 'Taylor',
-    type: 'person',
-    gender: 'female',
+    ...makeNode(
+      'person-taylor',
+      'Taylor',
+      'person',
+      'female',
+    ),
+    tags: ['technology', 'community'],
   },
-  {
-    id: 'company-cfa',
-    label: 'Chick-fil-A',
-    type: 'company',
-  },
-  {
-    id: 'church-life',
-    label: 'LIFE Fellowship',
-    type: 'church',
-  },
-  {
-    id: 'school-example',
-    label: 'Example University',
-    type: 'school',
-  },
+  makeNode(
+    'company-cfa',
+    'Chick-fil-A',
+    'company',
+  ),
+  makeNode(
+    'church-life',
+    'LIFE Fellowship',
+    'church',
+  ),
+  makeNode(
+    'school-example',
+    'Example University',
+    'school',
+  ),
 ]
 
 const initialEdges: GraphEdge[] = [
@@ -61,7 +94,10 @@ const initialEdges: GraphEdge[] = [
   },
 ]
 
-const nodeTypes: Array<{ type: NodeType; label: string }> = [
+const nodeTypes: Array<{
+  type: NodeType
+  label: string
+}> = [
   { type: 'person', label: 'People' },
   { type: 'company', label: 'Companies' },
   { type: 'church', label: 'Churches' },
@@ -72,13 +108,22 @@ const nodeTypes: Array<{ type: NodeType; label: string }> = [
 ]
 
 function App() {
-  const [nodes, setNodes] = useState<GraphNode[]>(initialNodes)
-  const [edges, setEdges] = useState<GraphEdge[]>(initialEdges)
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [nodes, setNodes] =
+    useState<GraphNode[]>(initialNodes)
+
+  const [edges, setEdges] =
+    useState<GraphEdge[]>(initialEdges)
+
+  const [selectedNodeId, setSelectedNodeId] =
+    useState<string | null>(null)
+
   const [search, setSearch] = useState('')
 
   const selectedNode = useMemo(
-    () => nodes.find((node) => node.id === selectedNodeId) ?? null,
+    () =>
+      nodes.find(
+        (node) => node.id === selectedNodeId,
+      ) ?? null,
     [nodes, selectedNodeId],
   )
 
@@ -86,58 +131,35 @@ function App() {
     const term = search.trim().toLowerCase()
 
     if (!term) {
-      return nodes
+      return []
     }
 
     return nodes.filter((node) =>
-      `${node.label} ${node.type} ${node.description ?? ''}`
+      JSON.stringify(node)
         .toLowerCase()
         .includes(term),
     )
   }, [nodes, search])
 
   function createNode() {
-    const label = window.prompt('What should this node be called?')
-
-    if (!label?.trim()) {
-      return
-    }
-
-    const requestedType = window
-      .prompt(
-        'Node type: person, company, church, school, address, event, or document',
-        'person',
-      )
-      ?.trim()
-      .toLowerCase()
-
-    const validTypes: NodeType[] = [
+    const node = makeNode(
+      crypto.randomUUID(),
+      'New person',
       'person',
-      'company',
-      'church',
-      'school',
-      'address',
-      'event',
-      'document',
-    ]
+    )
 
-    const type = validTypes.includes(requestedType as NodeType)
-      ? (requestedType as NodeType)
-      : 'person'
+    setNodes((current) => [...current, node])
+    setSelectedNodeId(node.id)
+  }
 
-    const id = `${type}-${crypto.randomUUID()}`
-
-    setNodes((currentNodes) => [
-      ...currentNodes,
-      {
-        id,
-        label: label.trim(),
-        type,
-        gender: 'unspecified',
-      },
-    ])
-
-    setSelectedNodeId(id)
+  function updateNode(updatedNode: GraphNode) {
+    setNodes((current) =>
+      current.map((node) =>
+        node.id === updatedNode.id
+          ? updatedNode
+          : node,
+      ),
+    )
   }
 
   function deleteSelectedNode() {
@@ -153,12 +175,14 @@ function App() {
       return
     }
 
-    setNodes((currentNodes) =>
-      currentNodes.filter((node) => node.id !== selectedNode.id),
+    setNodes((current) =>
+      current.filter(
+        (node) => node.id !== selectedNode.id,
+      ),
     )
 
-    setEdges((currentEdges) =>
-      currentEdges.filter(
+    setEdges((current) =>
+      current.filter(
         (edge) =>
           edge.source !== selectedNode.id &&
           edge.target !== selectedNode.id,
@@ -173,19 +197,26 @@ function App() {
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">N</div>
+
           <div>
             <h1>Nexus</h1>
-            <p>Relationship Intelligence Platform</p>
+            <p>
+              Relationship Intelligence Platform
+            </p>
           </div>
         </div>
 
         <label className="global-search">
           <span>⌕</span>
+
           <input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
             placeholder="Search people, places, organizations…"
           />
+
           <kbd>⌘ K</kbd>
         </label>
       </header>
@@ -194,7 +225,11 @@ function App() {
         <aside className="sidebar">
           <div className="sidebar-heading">
             <span>Explorer</span>
-            <button onClick={createNode} aria-label="Add node">
+
+            <button
+              onClick={createNode}
+              aria-label="Add node"
+            >
               ＋
             </button>
           </div>
@@ -203,15 +238,25 @@ function App() {
             <button className="node-list-item active">
               <span className="node-icon">◎</span>
               <span>All nodes</span>
-              <span className="node-count">{nodes.length}</span>
+              <span className="node-count">
+                {nodes.length}
+              </span>
             </button>
 
             {nodeTypes.map((item) => (
-              <button className="node-list-item" key={item.type}>
+              <button
+                className="node-list-item"
+                key={item.type}
+              >
                 <span className="node-icon">●</span>
                 <span>{item.label}</span>
                 <span className="node-count">
-                  {nodes.filter((node) => node.type === item.type).length}
+                  {
+                    nodes.filter(
+                      (node) =>
+                        node.type === item.type,
+                    ).length
+                  }
                 </span>
               </button>
             ))}
@@ -227,7 +272,9 @@ function App() {
                 <button
                   key={node.id}
                   className="saved-view"
-                  onClick={() => setSelectedNodeId(node.id)}
+                  onClick={() =>
+                    setSelectedNodeId(node.id)
+                  }
                 >
                   {node.label}
                 </button>
@@ -238,12 +285,16 @@ function App() {
 
         <main className="canvas-area">
           <div className="canvas-toolbar">
-            <button className="primary-button" onClick={createNode}>
+            <button
+              className="primary-button"
+              onClick={createNode}
+            >
               ＋ New node
             </button>
 
             <span className="toolbar-message">
-              Drag nodes, scroll to zoom, and click a node to select it.
+              Drag nodes, scroll to zoom, and
+              click a node to select it.
             </span>
           </div>
 
@@ -258,11 +309,17 @@ function App() {
 
           <footer className="statusbar">
             <span>
-              <i className="status-dot online" /> Graph ready
+              <i className="status-dot online" />
+              Live editing
             </span>
+
             <span>{nodes.length} nodes</span>
-            <span>{edges.length} relationships</span>
+            <span>
+              {edges.length} relationships
+            </span>
+
             <span className="statusbar-spacer" />
+
             <span>Local project</span>
           </footer>
         </main>
@@ -271,53 +328,32 @@ function App() {
           <div className="inspector-header">
             <div>
               <h2>Inspector</h2>
-              <p>{selectedNode ? selectedNode.type : 'No selection'}</p>
+              <p>
+                {selectedNode
+                  ? selectedNode.type
+                  : 'No selection'}
+              </p>
             </div>
           </div>
 
           {selectedNode ? (
-            <div className="selected-node-panel">
-              <div
-                className={`selected-node-avatar ${selectedNode.gender ?? 'unspecified'}`}
-              >
-                {selectedNode.label.slice(0, 2).toUpperCase()}
-              </div>
-
-              <h3>{selectedNode.label}</h3>
-              <p>{selectedNode.description ?? 'No description yet.'}</p>
-
-              <dl>
-                <div>
-                  <dt>Type</dt>
-                  <dd>{selectedNode.type}</dd>
-                </div>
-                <div>
-                  <dt>Connected relationships</dt>
-                  <dd>
-                    {
-                      edges.filter(
-                        (edge) =>
-                          edge.source === selectedNode.id ||
-                          edge.target === selectedNode.id,
-                      ).length
-                    }
-                  </dd>
-                </div>
-              </dl>
-
-              <button
-                className="delete-button"
-                onClick={deleteSelectedNode}
-              >
-                Delete selected node
-              </button>
-            </div>
+            <NodeEditor
+              node={selectedNode}
+              onChange={updateNode}
+              onDelete={deleteSelectedNode}
+            />
           ) : (
             <div className="inspector-empty">
-              <div className="inspector-empty-icon">◎</div>
+              <div className="inspector-empty-icon">
+                ◎
+              </div>
+
               <h3>Select a node</h3>
+
               <p>
-                Click a node on the canvas to view and edit its information.
+                Click a node to edit its name,
+                type, color, address, tags,
+                notes, and custom information.
               </p>
             </div>
           )}

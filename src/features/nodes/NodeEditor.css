@@ -1,0 +1,141 @@
+.node-editor {
+  padding: 18px;
+}
+
+.node-editor-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #202938;
+}
+
+.node-editor-avatar,
+.node-editor-photo {
+  width: 62px;
+  height: 62px;
+  flex: 0 0 62px;
+  border: 4px solid #202938;
+  border-radius: 50%;
+}
+
+.node-editor-avatar {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #7c5cff;
+  font-weight: 800;
+}
+
+.node-editor-avatar.male {
+  background: #2563eb;
+}
+
+.node-editor-avatar.female {
+  background: #dc2626;
+}
+
+.node-editor-photo {
+  object-fit: cover;
+}
+
+.node-editor-profile h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.node-editor-profile p {
+  margin: 0;
+  color: #77859a;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.editor-section {
+  padding: 14px 0;
+  border-bottom: 1px solid #202938;
+}
+
+.editor-section label {
+  display: block;
+  margin-bottom: 11px;
+  color: #8593a8;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.editor-section input,
+.editor-section select,
+.editor-section textarea {
+  width: 100%;
+  margin-top: 5px;
+  padding: 9px;
+  border: 1px solid #2b3749;
+  border-radius: 7px;
+  outline: none;
+  color: #e7edf7;
+  background: #0c131d;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.editor-section input:focus,
+.editor-section select:focus,
+.editor-section textarea:focus {
+  border-color: #7357ed;
+}
+
+.editor-section textarea {
+  resize: vertical;
+}
+
+.editor-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.editor-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editor-section-heading h4 {
+  margin: 0;
+  font-size: 12px;
+}
+
+.editor-section-heading button {
+  border: 0;
+  color: #a99cff;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.custom-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 30px;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.custom-field-row input {
+  margin: 0;
+}
+
+.custom-field-row button {
+  border: 1px solid #49303a;
+  border-radius: 7px;
+  color: #fca5a5;
+  background: #29171c;
+  cursor: pointer;
+}
+
+.editor-empty-message {
+  margin: 10px 0 0;
+  color: #69788e;
+  font-size: 11px;
+}

@@ -7,12 +7,26 @@ export type NodeType =
   | 'event'
   | 'document'
 
+export type Gender = 'male' | 'female' | 'unspecified'
+
+export interface CustomField {
+  id: string
+  key: string
+  value: string
+}
+
 export interface GraphNode {
   id: string
   label: string
   type: NodeType
-  gender?: 'male' | 'female' | 'unspecified'
-  description?: string
+  gender: Gender
+  description: string
+  photoUrl: string
+  address: string
+  city: string
+  tags: string[]
+  notes: string
+  customFields: CustomField[]
 }
 
 export interface GraphEdge {
