@@ -5,6 +5,7 @@ import {
   useState,
 } from 'react'
 import './App.css'
+import { entityTypes } from './config/entityTypes'
 import { GraphCanvas } from './features/graph/GraphCanvas'
 import { NodeEditor } from './features/nodes/NodeEditor'
 import { RelationshipEditor } from './features/relationships/RelationshipEditor'
@@ -150,39 +151,7 @@ function createStarterProject(): ProjectData {
   }
 }
 
-const nodeTypes: Array<{
-  type: NodeType
-  label: string
-}> = [
-  {
-    type: 'person',
-    label: 'People',
-  },
-  {
-    type: 'company',
-    label: 'Companies',
-  },
-  {
-    type: 'church',
-    label: 'Churches',
-  },
-  {
-    type: 'school',
-    label: 'Schools',
-  },
-  {
-    type: 'address',
-    label: 'Addresses',
-  },
-  {
-    type: 'event',
-    label: 'Events',
-  },
-  {
-    type: 'document',
-    label: 'Documents',
-  },
-]
+const nodeTypes = entityTypes
 
 function App() {
   const fileInputRef =

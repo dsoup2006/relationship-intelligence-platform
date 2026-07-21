@@ -5,6 +5,7 @@ import type {
   NodeType,
 } from '../../types/graph'
 import { TagInput } from './TagInput'
+import { entityTypeValues } from '../../config/entityTypes'
 import './NodeEditor.css'
 
 interface NodeEditorProps {
@@ -13,15 +14,7 @@ interface NodeEditorProps {
   onDelete: () => void
 }
 
-const nodeTypes: NodeType[] = [
-  'person',
-  'company',
-  'church',
-  'school',
-  'address',
-  'event',
-  'document',
-]
+const nodeTypes: NodeType[] = entityTypeValues
 
 const genders: Gender[] = ['unspecified', 'male', 'female']
 
