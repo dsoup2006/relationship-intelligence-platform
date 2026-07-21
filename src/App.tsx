@@ -5,6 +5,10 @@ import {
   useState,
 } from 'react'
 import './App.css'
+import {
+  EntityCreationWizard,
+  type NewEntityDetails,
+} from './features/entities/EntityCreationWizard'
 import { entityTypes } from './config/entityTypes'
 import { GraphCanvas } from './features/graph/GraphCanvas'
 import { NodeEditor } from './features/nodes/NodeEditor'
@@ -183,6 +187,9 @@ function App() {
   const [search, setSearch] =
     useState('')
 
+  const [showEntityWizard, setShowEntityWizard] =
+    useState(false)
+
   const [showIntelligence, setShowIntelligence] =
     useState(false)
 
@@ -338,24 +345,34 @@ function App() {
   }
 
   function createNode() {
-    const node = makeNode(
-      crypto.randomUUID(),
-      'New person',
-      'person',
-    )
+    setShowEntityWizard(true)
+  }
+
+  function createEntity(
+    details: NewEntityDetails,
+  ) {
+    const node: GraphNode = {
+      ...makeNode(
+        crypto.randomUUID(),
+        details.label,
+        details.type,
+        details.gender,
+      ),
+      description: details.description,
+      address: details.address,
+      city: details.city,
+      tags: details.tags,
+    }
 
     updateProject((current) => ({
       ...current,
-      nodes: [
-        ...current.nodes,
-        node,
-      ],
-      updatedAt:
-        new Date().toISOString(),
+      nodes: [...current.nodes, node],
+      updatedAt: new Date().toISOString(),
     }))
 
     setSelectedNodeId(node.id)
     setSelectedEdgeId(null)
+    setShowEntityWizard(false)
   }
 
   function updateNode(
@@ -1116,6 +1133,14 @@ function App() {
           )}
         </aside>
       </div>
+      {showEntityWizard && (
+        <EntityCreationWizard
+          onCreate={createEntity}
+          onCancel={() =>
+            setShowEntityWizard(false)
+          }
+        />
+      )}
     </div>
   )
 }
