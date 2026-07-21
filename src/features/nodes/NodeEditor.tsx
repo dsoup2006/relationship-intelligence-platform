@@ -4,6 +4,7 @@ import type {
   GraphNode,
   NodeType,
 } from '../../types/graph'
+import { TagInput } from './TagInput'
 import './NodeEditor.css'
 
 interface NodeEditorProps {
@@ -190,18 +191,12 @@ export function NodeEditor({
 
         <label>
           Tags
-          <input
-            value={node.tags.join(', ')}
-            onChange={(event) =>
-              update(
-                'tags',
-                event.target.value
-                  .split(',')
-                  .map((tag) => tag.trim())
-                  .filter(Boolean),
-              )
+
+          <TagInput
+            tags={node.tags}
+            onChange={(tags) =>
+              update('tags', tags)
             }
-            placeholder="leadership, aviation, community"
           />
         </label>
 

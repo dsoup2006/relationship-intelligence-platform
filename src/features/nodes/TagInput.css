@@ -1,0 +1,66 @@
+.tag-input {
+  min-height: 43px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  padding: 6px;
+  border: 1px solid #2b3749;
+  border-radius: 7px;
+  background: #0c131d;
+  cursor: text;
+}
+
+.tag-input:focus-within {
+  border-color: #7357ed;
+}
+
+.tag-input input {
+  min-width: 130px;
+  flex: 1;
+  margin: 0;
+  padding: 4px;
+  border: 0;
+  outline: none;
+  background: transparent;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 5px 7px;
+  border: 1px solid #51469a;
+  border-radius: 999px;
+  color: #ddd6fe;
+  background: #30265e;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.tag-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-chip button {
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #c4b5fd;
+  background: #473b87;
+  cursor: pointer;
+}
+
+.tag-chip button:hover {
+  color: white;
+  background: #6d5bd0;
+}

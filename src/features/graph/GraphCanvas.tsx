@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
 import type { GraphEdge, GraphNode } from '../../types/graph'
+import { buildAttributeSpokes } from './attributeSpokes'
 import type { SuggestedConnection } from '../intelligence/suggestedConnections'
 import './GraphCanvas.css'
 
@@ -58,11 +59,17 @@ export function GraphCanvas({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const cytoscapeRef = useRef<Core | null>(null)
 
+  const graphNodesRef = useRef(nodes)
+
   const callbacksRef = useRef({
     onSelectNode,
     onSelectEdge,
     onConnectTarget,
   })
+
+  useEffect(() => {
+    graphNodesRef.current = nodes
+  }, [nodes])
 
   useEffect(() => {
     callbacksRef.current = {
@@ -131,6 +138,38 @@ export function GraphCanvas({
           style: {
             shape: 'hexagon',
             'background-color': '#0891b2',
+          },
+        },
+        {
+          selector: 'node.attribute-spoke',
+          style: {
+            width: 34,
+            height: 34,
+            shape: 'round-rectangle',
+            label: 'data(label)',
+            'font-size': 9,
+            'font-weight': 600,
+            color: '#dce5f2',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'text-wrap': 'wrap',
+            'text-max-width': 105,
+            'background-color': '#334155',
+            'border-width': 2,
+            'border-color': '#64748b',
+            padding: '9px',
+            'overlay-opacity': 0,
+          },
+        },
+        {
+          selector: 'edge[kind = "attribute"]',
+          style: {
+            width: 1.5,
+            'line-color': '#64748b',
+            'line-style': 'dotted',
+            'target-arrow-shape': 'none',
+            'curve-style': 'straight',
+            opacity: 0.85,
           },
         },
         {
@@ -351,6 +390,106 @@ export function GraphCanvas({
         )
       },
     )
+    const expandedNodeIds = new Set<string>()
+
+    function collapseAttributeSpokes(parentId: string) {
+      cy.elements().filter((element) => {
+        return element.data('spokeParent') === parentId
+      }).remove()
+
+      expandedNodeIds.delete(parentId)
+    }
+
+    function expandAttributeSpokes(parentId: string) {
+      const graphNode = graphNodesRef.current.find(
+        (node) => node.id === parentId,
+      )
+
+      const parentNode = cy.getElementById(parentId)
+
+      if (!graphNode || !parentNode.length) {
+        return
+      }
+
+      const spokes = buildAttributeSpokes(graphNode)
+
+      if (spokes.length === 0) {
+        return
+      }
+
+      const parentPosition = parentNode.position()
+      const radius = Math.max(125, 80 + spokes.length * 8)
+
+      spokes.forEach((spoke, index) => {
+        const angle =
+          (Math.PI * 2 * index) / spokes.length -
+          Math.PI / 2
+
+        const targetPosition = {
+          x: parentPosition.x + Math.cos(angle) * radius,
+          y: parentPosition.y + Math.sin(angle) * radius,
+        }
+
+        const spokeNode = cy.add({
+          group: 'nodes',
+          data: {
+            id: spoke.id,
+            label: spoke.label,
+            category: spoke.category,
+            kind: 'attribute',
+            spokeParent: parentId,
+          },
+          position: {
+            x: parentPosition.x,
+            y: parentPosition.y,
+          },
+          classes: 'attribute-spoke',
+          grabbable: false,
+          selectable: false,
+        })
+
+        cy.add({
+          group: 'edges',
+          data: {
+            id: `attribute-edge-${spoke.id}`,
+            source: parentId,
+            target: spoke.id,
+            kind: 'attribute',
+            spokeParent: parentId,
+          },
+          selectable: false,
+        })
+
+        spokeNode.animate(
+          {
+            position: targetPosition,
+          },
+          {
+            duration: 320,
+            easing: 'ease-out',
+          },
+        )
+      })
+
+      expandedNodeIds.add(parentId)
+    }
+
+    cy.on('dbltap', 'node', (event) => {
+      const node = event.target
+
+      if (node.data('kind') === 'attribute') {
+        return
+      }
+
+      const parentId = node.id()
+
+      if (expandedNodeIds.has(parentId)) {
+        collapseAttributeSpokes(parentId)
+      } else {
+        expandAttributeSpokes(parentId)
+      }
+    })
+
     cy.on('tap', 'node', (event) => {
       const nodeId = event.target.id()
 
@@ -419,13 +558,19 @@ export function GraphCanvas({
     cy.startBatch()
 
     cy.nodes().forEach((node) => {
-      if (!desiredNodeIds.has(node.id())) {
+      if (
+        node.data('kind') !== 'attribute' &&
+        !desiredNodeIds.has(node.id())
+      ) {
         node.remove()
       }
     })
 
     cy.edges().forEach((edge) => {
-      if (!desiredEdgeIds.has(edge.id())) {
+      if (
+        edge.data('kind') !== 'attribute' &&
+        !desiredEdgeIds.has(edge.id())
+      ) {
         edge.remove()
       }
     })
