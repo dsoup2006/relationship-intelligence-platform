@@ -168,17 +168,27 @@ export function GraphCanvas({
         {
           selector: 'edge[kind = "suggested"]',
           style: {
-            width: 'mapData(score, 20, 100, 1.5, 5)',
+            width: 'mapData(score, 20, 100, 2.5, 6)',
             label: 'data(label)',
-            'font-size': 9,
-            color: '#c4b5fd',
+            'font-size': 10,
+            'font-weight': 700,
+            color: '#ddd6fe',
             'text-outline-color': '#0c121b',
-            'text-outline-width': 3,
-            'line-color': '#8b5cf6',
+            'text-outline-width': 4,
+            'line-color': '#a78bfa',
             'line-style': 'dashed',
             'target-arrow-shape': 'none',
-            'curve-style': 'bezier',
-            opacity: 0.7,
+
+            /*
+             * Arc suggested links away from confirmed links so both
+             * remain visible between the same pair of nodes.
+             */
+            'curve-style': 'unbundled-bezier',
+            'control-point-distances': 65,
+            'control-point-weights': 0.5,
+
+            opacity: 0.95,
+            'z-index': 20,
           },
         },
         {
