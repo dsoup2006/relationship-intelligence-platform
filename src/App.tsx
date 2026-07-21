@@ -8,6 +8,7 @@ import './App.css'
 import { GraphCanvas } from './features/graph/GraphCanvas'
 import { NodeEditor } from './features/nodes/NodeEditor'
 import { RelationshipEditor } from './features/relationships/RelationshipEditor'
+import { useHistoryState } from './hooks/useHistoryState'
 import {
   createEmptyProject,
   downloadProject,
@@ -73,7 +74,10 @@ function createStarterProject(): ProjectData {
       ),
       description: 'Example person node',
       city: 'Cornelius',
-      tags: ['leadership', 'community'],
+      tags: [
+        'leadership',
+        'community',
+      ],
     },
     {
       ...makeNode(
@@ -82,7 +86,10 @@ function createStarterProject(): ProjectData {
         'person',
         'female',
       ),
-      tags: ['technology', 'community'],
+      tags: [
+        'technology',
+        'community',
+      ],
     },
     makeNode(
       'company-cfa',
@@ -131,7 +138,8 @@ function createStarterProject(): ProjectData {
   return {
     version: 1,
     name: 'My Nexus Project',
-    updatedAt: new Date().toISOString(),
+    updatedAt:
+      new Date().toISOString(),
     nodes,
     edges,
   }
@@ -141,27 +149,53 @@ const nodeTypes: Array<{
   type: NodeType
   label: string
 }> = [
-  { type: 'person', label: 'People' },
-  { type: 'company', label: 'Companies' },
-  { type: 'church', label: 'Churches' },
-  { type: 'school', label: 'Schools' },
-  { type: 'address', label: 'Addresses' },
-  { type: 'event', label: 'Events' },
-  { type: 'document', label: 'Documents' },
+  {
+    type: 'person',
+    label: 'People',
+  },
+  {
+    type: 'company',
+    label: 'Companies',
+  },
+  {
+    type: 'church',
+    label: 'Churches',
+  },
+  {
+    type: 'school',
+    label: 'Schools',
+  },
+  {
+    type: 'address',
+    label: 'Addresses',
+  },
+  {
+    type: 'event',
+    label: 'Events',
+  },
+  {
+    type: 'document',
+    label: 'Documents',
+  },
 ]
 
 function App() {
   const fileInputRef =
-    useRef<HTMLInputElement | null>(null)
+    useRef<HTMLInputElement | null>(
+      null,
+    )
 
-  const [projectName, setProjectName] =
-    useState('My Nexus Project')
-
-  const [nodes, setNodes] =
-    useState<GraphNode[]>([])
-
-  const [edges, setEdges] =
-    useState<GraphEdge[]>([])
+  const {
+    value: project,
+    commit,
+    replace,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useHistoryState<ProjectData>(
+    createStarterProject(),
+  )
 
   const [selectedNodeId, setSelectedNodeId] =
     useState<string | null>(null)
@@ -172,22 +206,31 @@ function App() {
   const [connectSourceId, setConnectSourceId] =
     useState<string | null>(null)
 
-  const [search, setSearch] = useState('')
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [search, setSearch] =
+    useState('')
 
-  const [saveStatus, setSaveStatus] = useState<
-    'saved' | 'saving' | 'error'
-  >('saved')
+  const [isLoaded, setIsLoaded] =
+    useState(false)
+
+  const [saveStatus, setSaveStatus] =
+    useState<
+      'saved' | 'saving' | 'error'
+    >('saved')
+
+  const nodes = project.nodes
+  const edges = project.edges
 
   useEffect(() => {
-    const savedProject = loadProject()
-    const project = savedProject ?? createStarterProject()
+    const savedProject =
+      loadProject()
 
-    setProjectName(project.name)
-    setNodes(project.nodes)
-    setEdges(project.edges)
+    replace(
+      savedProject ??
+        createStarterProject(),
+    )
+
     setIsLoaded(true)
-  }, [])
+  }, [replace])
 
   useEffect(() => {
     if (!isLoaded) {
@@ -196,30 +239,68 @@ function App() {
 
     setSaveStatus('saving')
 
-    const timer = window.setTimeout(() => {
-      try {
-        saveProject({
-          version: 1,
-          name: projectName,
-          updatedAt: new Date().toISOString(),
-          nodes,
-          edges,
-        })
+    const timer =
+      window.setTimeout(() => {
+        try {
+          saveProject(project)
+          setSaveStatus('saved')
+        } catch (error) {
+          console.error(
+            'Autosave failed:',
+            error,
+          )
 
-        setSaveStatus('saved')
-      } catch (error) {
-        console.error('Autosave failed:', error)
-        setSaveStatus('error')
-      }
-    }, 500)
+          setSaveStatus('error')
+        }
+      }, 500)
 
-    return () => window.clearTimeout(timer)
-  }, [projectName, nodes, edges, isLoaded])
+    return () =>
+      window.clearTimeout(timer)
+  }, [project, isLoaded])
+
+  useEffect(() => {
+    if (
+      selectedNodeId &&
+      !nodes.some(
+        (node) =>
+          node.id === selectedNodeId,
+      )
+    ) {
+      setSelectedNodeId(null)
+    }
+
+    if (
+      selectedEdgeId &&
+      !edges.some(
+        (edge) =>
+          edge.id === selectedEdgeId,
+      )
+    ) {
+      setSelectedEdgeId(null)
+    }
+
+    if (
+      connectSourceId &&
+      !nodes.some(
+        (node) =>
+          node.id === connectSourceId,
+      )
+    ) {
+      setConnectSourceId(null)
+    }
+  }, [
+    nodes,
+    edges,
+    selectedNodeId,
+    selectedEdgeId,
+    connectSourceId,
+  ])
 
   const selectedNode = useMemo(
     () =>
       nodes.find(
-        (node) => node.id === selectedNodeId,
+        (node) =>
+          node.id === selectedNodeId,
       ) ?? null,
     [nodes, selectedNodeId],
   )
@@ -227,33 +308,37 @@ function App() {
   const selectedEdge = useMemo(
     () =>
       edges.find(
-        (edge) => edge.id === selectedEdgeId,
+        (edge) =>
+          edge.id === selectedEdgeId,
       ) ?? null,
     [edges, selectedEdgeId],
   )
 
-  const filteredNodes = useMemo(() => {
-    const term = search.trim().toLowerCase()
+  const filteredNodes =
+    useMemo(() => {
+      const term =
+        search.trim().toLowerCase()
 
-    if (!term) {
-      return []
-    }
+      if (!term) {
+        return []
+      }
 
-    return nodes.filter((node) =>
-      JSON.stringify(node)
-        .toLowerCase()
-        .includes(term),
-    )
-  }, [nodes, search])
+      return nodes.filter((node) =>
+        JSON.stringify(node)
+          .toLowerCase()
+          .includes(term),
+      )
+    }, [nodes, search])
 
-  function currentProject(): ProjectData {
-    return {
-      version: 1,
-      name: projectName,
-      updatedAt: new Date().toISOString(),
-      nodes,
-      edges,
-    }
+  function updateProject(
+    updater: (
+      current: ProjectData,
+    ) => ProjectData,
+    mergeKey?: string,
+  ) {
+    commit(updater, {
+      mergeKey,
+    })
   }
 
   function createNode() {
@@ -263,28 +348,76 @@ function App() {
       'person',
     )
 
-    setNodes((current) => [...current, node])
+    updateProject((current) => ({
+      ...current,
+      nodes: [
+        ...current.nodes,
+        node,
+      ],
+      updatedAt:
+        new Date().toISOString(),
+    }))
+
     setSelectedNodeId(node.id)
     setSelectedEdgeId(null)
   }
 
-  function updateNode(updatedNode: GraphNode) {
-    setNodes((current) =>
-      current.map((node) =>
-        node.id === updatedNode.id
-          ? updatedNode
-          : node,
-      ),
+  function updateNode(
+    updatedNode: GraphNode,
+  ) {
+    updateProject(
+      (current) => ({
+        ...current,
+
+        nodes: current.nodes.map(
+          (node) =>
+            node.id === updatedNode.id
+              ? updatedNode
+              : node,
+        ),
+
+        updatedAt:
+          new Date().toISOString(),
+      }),
+
+      `node-${updatedNode.id}`,
     )
   }
 
-  function updateEdge(updatedEdge: GraphEdge) {
-    setEdges((current) =>
-      current.map((edge) =>
-        edge.id === updatedEdge.id
-          ? updatedEdge
-          : edge,
-      ),
+  function updateEdge(
+    updatedEdge: GraphEdge,
+  ) {
+    updateProject(
+      (current) => ({
+        ...current,
+
+        edges: current.edges.map(
+          (edge) =>
+            edge.id === updatedEdge.id
+              ? updatedEdge
+              : edge,
+        ),
+
+        updatedAt:
+          new Date().toISOString(),
+      }),
+
+      `edge-${updatedEdge.id}`,
+    )
+  }
+
+  function updateProjectName(
+    name: string,
+  ) {
+    updateProject(
+      (current) => ({
+        ...current,
+        name,
+        updatedAt:
+          new Date().toISOString(),
+      }),
+
+      'project-name',
     )
   }
 
@@ -301,19 +434,25 @@ function App() {
       return
     }
 
-    setNodes((current) =>
-      current.filter(
-        (node) => node.id !== selectedNode.id,
-      ),
-    )
+    updateProject((current) => ({
+      ...current,
 
-    setEdges((current) =>
-      current.filter(
-        (edge) =>
-          edge.source !== selectedNode.id &&
-          edge.target !== selectedNode.id,
+      nodes: current.nodes.filter(
+        (node) =>
+          node.id !== selectedNode.id,
       ),
-    )
+
+      edges: current.edges.filter(
+        (edge) =>
+          edge.source !==
+            selectedNode.id &&
+          edge.target !==
+            selectedNode.id,
+      ),
+
+      updatedAt:
+        new Date().toISOString(),
+    }))
 
     setSelectedNodeId(null)
   }
@@ -331,22 +470,34 @@ function App() {
       return
     }
 
-    setEdges((current) =>
-      current.filter(
-        (edge) => edge.id !== selectedEdge.id,
+    updateProject((current) => ({
+      ...current,
+
+      edges: current.edges.filter(
+        (edge) =>
+          edge.id !== selectedEdge.id,
       ),
-    )
+
+      updatedAt:
+        new Date().toISOString(),
+    }))
 
     setSelectedEdgeId(null)
   }
 
   function startConnecting() {
     if (!selectedNodeId) {
-      window.alert('Select a starting node first.')
+      window.alert(
+        'Select a starting node first.',
+      )
+
       return
     }
 
-    setConnectSourceId(selectedNodeId)
+    setConnectSourceId(
+      selectedNodeId,
+    )
+
     setSelectedEdgeId(null)
   }
 
@@ -357,8 +508,14 @@ function App() {
       return
     }
 
-    if (targetNodeId === connectSourceId) {
-      window.alert('Choose a different target node.')
+    if (
+      targetNodeId ===
+      connectSourceId
+    ) {
+      window.alert(
+        'Choose a different target node.',
+      )
+
       return
     }
 
@@ -369,7 +526,16 @@ function App() {
       'connected to',
     )
 
-    setEdges((current) => [...current, edge])
+    updateProject((current) => ({
+      ...current,
+      edges: [
+        ...current.edges,
+        edge,
+      ],
+      updatedAt:
+        new Date().toISOString(),
+    }))
+
     setConnectSourceId(null)
     setSelectedNodeId(null)
     setSelectedEdgeId(edge.id)
@@ -384,24 +550,23 @@ function App() {
       return
     }
 
-    const project = createEmptyProject()
+    replace(createEmptyProject())
 
-    setProjectName(project.name)
-    setNodes([])
-    setEdges([])
     setSelectedNodeId(null)
     setSelectedEdgeId(null)
     setConnectSourceId(null)
     setSearch('')
   }
 
-  async function importProject(file: File) {
+  async function importProject(
+    file: File,
+  ) {
     try {
-      const project = await readProjectFile(file)
+      const importedProject =
+        await readProjectFile(file)
 
-      setProjectName(project.name)
-      setNodes(project.nodes)
-      setEdges(project.edges)
+      replace(importedProject)
+
       setSelectedNodeId(null)
       setSelectedEdgeId(null)
       setConnectSourceId(null)
@@ -417,6 +582,89 @@ function App() {
     }
   }
 
+  function deleteSelection() {
+    if (selectedNode) {
+      deleteSelectedNode()
+      return
+    }
+
+    if (selectedEdge) {
+      deleteSelectedEdge()
+    }
+  }
+
+  useEffect(() => {
+    function handleKeyboard(
+      event: KeyboardEvent,
+    ) {
+      const target =
+        event.target as HTMLElement | null
+
+      const isTyping =
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA' ||
+        target?.tagName === 'SELECT' ||
+        target?.isContentEditable
+
+      const commandKey =
+        event.metaKey ||
+        event.ctrlKey
+
+      if (
+        commandKey &&
+        event.key.toLowerCase() === 'z'
+      ) {
+        event.preventDefault()
+
+        if (event.shiftKey) {
+          redo()
+        } else {
+          undo()
+        }
+
+        return
+      }
+
+      if (
+        commandKey &&
+        event.key.toLowerCase() === 'n'
+      ) {
+        event.preventDefault()
+        createNode()
+        return
+      }
+
+      if (
+        commandKey &&
+        event.key.toLowerCase() === 's'
+      ) {
+        event.preventDefault()
+        downloadProject(project)
+        return
+      }
+
+      if (
+        !isTyping &&
+        (event.key === 'Delete' ||
+          event.key === 'Backspace')
+      ) {
+        event.preventDefault()
+        deleteSelection()
+      }
+    }
+
+    window.addEventListener(
+      'keydown',
+      handleKeyboard,
+    )
+
+    return () =>
+      window.removeEventListener(
+        'keydown',
+        handleKeyboard,
+      )
+  })
+
   if (!isLoaded) {
     return (
       <div className="loading-screen">
@@ -429,21 +677,27 @@ function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark">N</div>
+          <div className="brand-mark">
+            N
+          </div>
 
           <div>
             <h1>Nexus</h1>
+
             <p>
-              Relationship Intelligence Platform
+              Relationship Intelligence
+              Platform
             </p>
           </div>
         </div>
 
         <input
           className="project-name-input"
-          value={projectName}
+          value={project.name}
           onChange={(event) =>
-            setProjectName(event.target.value)
+            updateProjectName(
+              event.target.value,
+            )
           }
           aria-label="Project name"
         />
@@ -454,7 +708,9 @@ function App() {
           <input
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
+              setSearch(
+                event.target.value,
+              )
             }
             placeholder="Search people, places, organizations…"
           />
@@ -478,8 +734,12 @@ function App() {
 
           <nav className="node-list">
             <button className="node-list-item active">
-              <span className="node-icon">◎</span>
+              <span className="node-icon">
+                ◎
+              </span>
+
               <span>All nodes</span>
+
               <span className="node-count">
                 {nodes.length}
               </span>
@@ -490,13 +750,18 @@ function App() {
                 className="node-list-item"
                 key={item.type}
               >
-                <span className="node-icon">●</span>
+                <span className="node-icon">
+                  ●
+                </span>
+
                 <span>{item.label}</span>
+
                 <span className="node-count">
                   {
                     nodes.filter(
                       (node) =>
-                        node.type === item.type,
+                        node.type ===
+                        item.type,
                     ).length
                   }
                 </span>
@@ -507,32 +772,43 @@ function App() {
           {search && (
             <div className="search-results">
               <div className="sidebar-heading">
-                <span>Search results</span>
+                <span>
+                  Search results
+                </span>
               </div>
 
-              {filteredNodes.map((node) => (
-                <button
-                  key={node.id}
-                  className="saved-view"
-                  onClick={() => {
-                    setSelectedNodeId(node.id)
-                    setSelectedEdgeId(null)
-                  }}
-                >
-                  {node.label}
-                </button>
-              ))}
+              {filteredNodes.map(
+                (node) => (
+                  <button
+                    key={node.id}
+                    className="saved-view"
+                    onClick={() => {
+                      setSelectedNodeId(
+                        node.id,
+                      )
+
+                      setSelectedEdgeId(
+                        null,
+                      )
+                    }}
+                  >
+                    {node.label}
+                  </button>
+                ),
+              )}
             </div>
           )}
 
           <div className="project-actions">
-            <button onClick={createNewProject}>
+            <button
+              onClick={createNewProject}
+            >
               New project
             </button>
 
             <button
               onClick={() =>
-                downloadProject(currentProject())
+                downloadProject(project)
               }
             >
               Export backup
@@ -552,7 +828,8 @@ function App() {
               accept="application/json,.json"
               hidden
               onChange={(event) => {
-                const file = event.target.files?.[0]
+                const file =
+                  event.target.files?.[0]
 
                 if (file) {
                   void importProject(file)
@@ -569,27 +846,50 @@ function App() {
             <button
               className="primary-button"
               onClick={createNode}
+              title="New node (Command N)"
             >
               ＋ New node
+            </button>
+
+            <button
+              className="history-button"
+              disabled={!canUndo}
+              onClick={undo}
+              title="Undo (Command Z)"
+            >
+              ↶ Undo
+            </button>
+
+            <button
+              className="history-button"
+              disabled={!canRedo}
+              onClick={redo}
+              title="Redo (Command Shift Z)"
+            >
+              ↷ Redo
             </button>
 
             {connectSourceId ? (
               <>
                 <span className="connect-message">
-                  Click another node to create the
-                  relationship.
+                  Click another node to
+                  create the relationship.
                 </span>
 
                 <button
                   onClick={() =>
-                    setConnectSourceId(null)
+                    setConnectSourceId(
+                      null,
+                    )
                   }
                 >
                   Cancel connection
                 </button>
               </>
             ) : (
-              <button onClick={startConnecting}>
+              <button
+                onClick={startConnecting}
+              >
                 Connect selected node
               </button>
             )}
@@ -599,12 +899,24 @@ function App() {
             <GraphCanvas
               nodes={nodes}
               edges={edges}
-              selectedNodeId={selectedNodeId}
-              selectedEdgeId={selectedEdgeId}
-              connectSourceId={connectSourceId}
-              onSelectNode={setSelectedNodeId}
-              onSelectEdge={setSelectedEdgeId}
-              onConnectTarget={handleConnectTarget}
+              selectedNodeId={
+                selectedNodeId
+              }
+              selectedEdgeId={
+                selectedEdgeId
+              }
+              connectSourceId={
+                connectSourceId
+              }
+              onSelectNode={
+                setSelectedNodeId
+              }
+              onSelectEdge={
+                setSelectedEdgeId
+              }
+              onConnectTarget={
+                handleConnectTarget
+              }
             />
           </section>
 
@@ -625,19 +937,20 @@ function App() {
                   : 'Saved'}
             </span>
 
-            <span>{nodes.length} nodes</span>
+            <span>
+              {nodes.length} nodes
+            </span>
 
             <span>
-              {edges.length} relationships
+              {edges.length}{' '}
+              relationships
             </span>
 
             <span className="statusbar-spacer" />
 
             <span>
-              {new Date().toLocaleTimeString([], {
-                hour: 'numeric',
-                minute: '2-digit',
-              })}
+              ⌘Z Undo · ⇧⌘Z Redo ·
+              ⌘N New · Delete Remove
             </span>
           </footer>
         </main>
@@ -661,7 +974,9 @@ function App() {
             <NodeEditor
               node={selectedNode}
               onChange={updateNode}
-              onDelete={deleteSelectedNode}
+              onDelete={
+                deleteSelectedNode
+              }
             />
           ) : selectedEdge ? (
             <RelationshipEditor
@@ -669,17 +984,21 @@ function App() {
               sourceNode={
                 nodes.find(
                   (node) =>
-                    node.id === selectedEdge.source,
+                    node.id ===
+                    selectedEdge.source,
                 ) ?? null
               }
               targetNode={
                 nodes.find(
                   (node) =>
-                    node.id === selectedEdge.target,
+                    node.id ===
+                    selectedEdge.target,
                 ) ?? null
               }
               onChange={updateEdge}
-              onDelete={deleteSelectedEdge}
+              onDelete={
+                deleteSelectedEdge
+              }
             />
           ) : (
             <div className="inspector-empty">
@@ -688,13 +1007,15 @@ function App() {
               </div>
 
               <h3>
-                Select a node or relationship
+                Select a node or
+                relationship
               </h3>
 
               <p>
                 Click a node to edit its
-                information, or click a line to
-                edit the relationship.
+                information, or click a
+                line to edit the
+                relationship.
               </p>
             </div>
           )}

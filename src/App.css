@@ -658,3 +658,13 @@ kbd {
 .status-dot.error {
   background: #ef4444;
 }
+
+.history-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.history-button:not(:disabled):hover {
+  border-color: #7357ed;
+  color: #fff;
+}
