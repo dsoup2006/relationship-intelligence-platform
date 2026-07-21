@@ -9,6 +9,8 @@ import { GraphCanvas } from './features/graph/GraphCanvas'
 import { NodeEditor } from './features/nodes/NodeEditor'
 import { RelationshipEditor } from './features/relationships/RelationshipEditor'
 import { IntelligencePanel } from './features/intelligence/IntelligencePanel'
+import { TimelineView } from './features/views/TimelineView'
+import { DashboardView } from './features/views/DashboardView'
 import { analyzeGraph } from './features/intelligence/analytics'
 import { useHistoryState } from './hooks/useHistoryState'
 import {
@@ -213,6 +215,10 @@ function App() {
 
   const [showIntelligence, setShowIntelligence] =
     useState(false)
+
+  const [activeView, setActiveView] = useState<
+    'graph' | 'timeline' | 'dashboard'
+  >('graph')
 
   const [isLoaded, setIsLoaded] =
     useState(false)
@@ -879,6 +885,29 @@ function App() {
               ↷ Redo
             </button>
 
+            <div className="view-switcher">
+              <button
+                className={activeView === 'graph' ? 'active' : ''}
+                onClick={() => setActiveView('graph')}
+              >
+                Graph
+              </button>
+
+              <button
+                className={activeView === 'timeline' ? 'active' : ''}
+                onClick={() => setActiveView('timeline')}
+              >
+                Timeline
+              </button>
+
+              <button
+                className={activeView === 'dashboard' ? 'active' : ''}
+                onClick={() => setActiveView('dashboard')}
+              >
+                Dashboard
+              </button>
+            </div>
+
             <button
               className={
                 showIntelligence
@@ -921,28 +950,57 @@ function App() {
           </div>
 
           <section className="canvas">
-            <GraphCanvas
-              nodes={nodes}
-              edges={edges}
-              selectedNodeId={
-                selectedNodeId
-              }
-              selectedEdgeId={
-                selectedEdgeId
-              }
-              connectSourceId={
-                connectSourceId
-              }
-              onSelectNode={
-                setSelectedNodeId
-              }
-              onSelectEdge={
-                setSelectedEdgeId
-              }
-              onConnectTarget={
-                handleConnectTarget
-              }
-            />
+            <div
+              className={`workspace-view ${
+                activeView === 'graph' ? '' : 'hidden'
+              }`}
+            >
+              <GraphCanvas
+                nodes={nodes}
+                edges={edges}
+                selectedNodeId={selectedNodeId}
+                selectedEdgeId={selectedEdgeId}
+                connectSourceId={connectSourceId}
+                onSelectNode={setSelectedNodeId}
+                onSelectEdge={setSelectedEdgeId}
+                onConnectTarget={handleConnectTarget}
+              />
+            </div>
+
+            <div
+              className={`workspace-view ${
+                activeView === 'timeline' ? '' : 'hidden'
+              }`}
+            >
+              <TimelineView
+                nodes={nodes}
+                edges={edges}
+                onSelectNode={(nodeId) => {
+                  setSelectedNodeId(nodeId)
+                  setSelectedEdgeId(null)
+                }}
+                onSelectEdge={(edgeId) => {
+                  setSelectedEdgeId(edgeId)
+                  setSelectedNodeId(null)
+                }}
+              />
+            </div>
+
+            <div
+              className={`workspace-view ${
+                activeView === 'dashboard' ? '' : 'hidden'
+              }`}
+            >
+              <DashboardView
+                nodes={nodes}
+                edges={edges}
+                analytics={analytics}
+                onSelectNode={(nodeId) => {
+                  setSelectedNodeId(nodeId)
+                  setSelectedEdgeId(null)
+                }}
+              />
+            </div>
           </section>
 
           <footer className="statusbar">

@@ -680,3 +680,25 @@ kbd {
   color: #ddd6fe;
   background: #30265e;
 }
+
+.view-switcher {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #2b3749;
+  border-radius: 8px;
+  background: #0c131d;
+}
+
+.canvas-toolbar .view-switcher button {
+  height: 25px;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  font-size: 10px;
+}
+
+.canvas-toolbar .view-switcher button.active {
+  color: #fff;
+  background: #6047df;
+}
