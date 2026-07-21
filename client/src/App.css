@@ -743,3 +743,27 @@ kbd {
     opacity: 1;
   }
 }
+
+.suggestions-review-button {
+  position: relative;
+}
+
+.suggestions-review-button.active {
+  border-color: #8b5cf6;
+  color: #ddd6fe;
+  background: #30265e;
+}
+
+.suggestions-badge {
+  min-width: 17px;
+  height: 17px;
+  display: inline-grid;
+  place-items: center;
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 999px;
+  color: #fff;
+  background: #8b5cf6;
+  font-size: 8px;
+  font-weight: 800;
+}

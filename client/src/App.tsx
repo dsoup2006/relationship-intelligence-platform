@@ -5,6 +5,8 @@ import {
   useState,
 } from 'react'
 import './App.css'
+import { RelationshipSuggestionsPanel } from './features/intelligence/RelationshipSuggestionsPanel'
+import type { SuggestedConnection } from './features/intelligence/suggestedConnections'
 import { useApiHealth } from './hooks/useApiHealth'
 import {
   EntityCreationWizard,
@@ -192,6 +194,18 @@ function App() {
   const [search, setSearch] =
     useState('')
 
+  const [
+    showRelationshipSuggestions,
+    setShowRelationshipSuggestions,
+  ] = useState(false)
+
+  const [
+    ignoredSuggestionIds,
+    setIgnoredSuggestionIds,
+  ] = useState<Set<string>>(
+    () => new Set(),
+  )
+
   const [showEntityWizard, setShowEntityWizard] =
     useState(false)
 
@@ -226,6 +240,15 @@ function App() {
   const suggestedConnections = useMemo(
     () => buildSuggestedConnections(nodes, edges),
     [nodes, edges],
+  )
+
+  const reviewableSuggestions = useMemo(
+    () =>
+      suggestedConnections.filter(
+        (suggestion) =>
+          !ignoredSuggestionIds.has(suggestion.id),
+      ),
+    [suggestedConnections, ignoredSuggestionIds],
   )
 
   useEffect(() => {
@@ -501,6 +524,47 @@ function App() {
     }))
 
     setSelectedEdgeId(null)
+  }
+
+  function acceptSuggestedRelationship(
+    suggestion: SuggestedConnection,
+  ) {
+    const edge = makeEdge(
+      crypto.randomUUID(),
+      suggestion.source,
+      suggestion.target,
+      'connected to',
+    )
+
+    edge.confidence = suggestion.score
+    edge.notes = `Accepted Nexus suggestion: ${suggestion.reasons.join(
+      ' • ',
+    )}`
+
+    updateProject((current) => ({
+      ...current,
+      edges: [...current.edges, edge],
+      updatedAt: new Date().toISOString(),
+    }))
+
+    setSelectedNodeId(null)
+    setSelectedEdgeId(edge.id)
+
+    setIgnoredSuggestionIds((current) => {
+      const next = new Set(current)
+      next.delete(suggestion.id)
+      return next
+    })
+  }
+
+  function ignoreSuggestedRelationship(
+    suggestionId: string,
+  ) {
+    setIgnoredSuggestionIds((current) => {
+      const next = new Set(current)
+      next.add(suggestionId)
+      return next
+    })
   }
 
   function startConnecting() {
@@ -912,6 +976,27 @@ function App() {
 
             <button
               className={
+                showRelationshipSuggestions
+                  ? 'suggestions-review-button active'
+                  : 'suggestions-review-button'
+              }
+              onClick={() =>
+                setShowRelationshipSuggestions(
+                  (current) => !current,
+                )
+              }
+              title="Review suggested relationships"
+            >
+              Review suggestions
+              {reviewableSuggestions.length > 0 && (
+                <span className="suggestions-badge">
+                  {reviewableSuggestions.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              className={
                 showSuggestedConnections
                   ? 'suggestion-toggle active'
                   : 'suggestion-toggle'
@@ -1100,7 +1185,22 @@ function App() {
             </div>
           </div>
 
-          {showIntelligence ? (
+          {showRelationshipSuggestions ? (
+            <RelationshipSuggestionsPanel
+              suggestions={reviewableSuggestions}
+              nodes={nodes}
+              onAccept={acceptSuggestedRelationship}
+              onIgnore={ignoreSuggestedRelationship}
+              onSelectNode={(nodeId) => {
+                setSelectedNodeId(nodeId)
+                setSelectedEdgeId(null)
+                setShowRelationshipSuggestions(false)
+              }}
+              onClose={() =>
+                setShowRelationshipSuggestions(false)
+              }
+            />
+          ) : showIntelligence ? (
             <IntelligencePanel
               analytics={analytics}
               selectedNodeId={selectedNodeId}
