@@ -34,4 +34,9 @@ export interface GraphEdge {
   source: string
   target: string
   label: string
+  startDate: string
+  endDate: string
+  strength: number
+  confidence: number
+  notes: string
 }

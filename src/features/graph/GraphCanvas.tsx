@@ -7,7 +7,11 @@ interface GraphCanvasProps {
   nodes: GraphNode[]
   edges: GraphEdge[]
   selectedNodeId: string | null
+  selectedEdgeId: string | null
+  connectSourceId: string | null
   onSelectNode: (nodeId: string | null) => void
+  onSelectEdge: (edgeId: string | null) => void
+  onConnectTarget: (targetNodeId: string) => void
 }
 
 function toElements(
@@ -29,6 +33,8 @@ function toElements(
         source: edge.source,
         target: edge.target,
         label: edge.label,
+        strength: edge.strength,
+        confidence: edge.confidence,
       },
     })),
   ]
@@ -38,15 +44,28 @@ export function GraphCanvas({
   nodes,
   edges,
   selectedNodeId,
+  selectedEdgeId,
+  connectSourceId,
   onSelectNode,
+  onSelectEdge,
+  onConnectTarget,
 }: GraphCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const cytoscapeRef = useRef<Core | null>(null)
-  const onSelectNodeRef = useRef(onSelectNode)
+
+  const callbacksRef = useRef({
+    onSelectNode,
+    onSelectEdge,
+    onConnectTarget,
+  })
 
   useEffect(() => {
-    onSelectNodeRef.current = onSelectNode
-  }, [onSelectNode])
+    callbacksRef.current = {
+      onSelectNode,
+      onSelectEdge,
+      onConnectTarget,
+    }
+  }, [onSelectNode, onSelectEdge, onConnectTarget])
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -120,9 +139,16 @@ export function GraphCanvas({
           },
         },
         {
+          selector: 'node.connect-source',
+          style: {
+            'border-width': 8,
+            'border-color': '#22c55e',
+          },
+        },
+        {
           selector: 'edge',
           style: {
-            width: 2,
+            width: 'mapData(strength, 0, 100, 1.5, 7)',
             label: 'data(label)',
             'font-size': 10,
             color: '#8492a6',
@@ -132,6 +158,14 @@ export function GraphCanvas({
             'target-arrow-color': '#53627a',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
+          },
+        },
+        {
+          selector: 'edge:selected',
+          style: {
+            'line-color': '#fbbf24',
+            'target-arrow-color': '#fbbf24',
+            width: 6,
           },
         },
       ],
@@ -154,12 +188,26 @@ export function GraphCanvas({
     cytoscapeRef.current = cy
 
     cy.on('tap', 'node', (event) => {
-      onSelectNodeRef.current(event.target.id())
+      const nodeId = event.target.id()
+
+      if (connectSourceId) {
+        callbacksRef.current.onConnectTarget(nodeId)
+        return
+      }
+
+      callbacksRef.current.onSelectNode(nodeId)
+      callbacksRef.current.onSelectEdge(null)
+    })
+
+    cy.on('tap', 'edge', (event) => {
+      callbacksRef.current.onSelectEdge(event.target.id())
+      callbacksRef.current.onSelectNode(null)
     })
 
     cy.on('tap', (event) => {
       if (event.target === cy) {
-        onSelectNodeRef.current(null)
+        callbacksRef.current.onSelectNode(null)
+        callbacksRef.current.onSelectEdge(null)
       }
     })
 
@@ -230,6 +278,8 @@ export function GraphCanvas({
           source: edge.source,
           target: edge.target,
           label: edge.label,
+          strength: edge.strength,
+          confidence: edge.confidence,
         })
       } else {
         cy.add({
@@ -239,6 +289,8 @@ export function GraphCanvas({
             source: edge.source,
             target: edge.target,
             label: edge.label,
+            strength: edge.strength,
+            confidence: edge.confidence,
           },
         })
       }
@@ -259,7 +311,25 @@ export function GraphCanvas({
     if (selectedNodeId) {
       cy.getElementById(selectedNodeId).select()
     }
-  }, [selectedNodeId])
+
+    if (selectedEdgeId) {
+      cy.getElementById(selectedEdgeId).select()
+    }
+  }, [selectedNodeId, selectedEdgeId])
+
+  useEffect(() => {
+    const cy = cytoscapeRef.current
+
+    if (!cy) {
+      return
+    }
+
+    cy.nodes().removeClass('connect-source')
+
+    if (connectSourceId) {
+      cy.getElementById(connectSourceId).addClass('connect-source')
+    }
+  }, [connectSourceId])
 
   return <div ref={containerRef} className="graph-canvas" />
 }

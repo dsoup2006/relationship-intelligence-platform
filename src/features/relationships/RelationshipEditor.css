@@ -1,0 +1,53 @@
+.relationship-editor {
+  padding: 18px;
+}
+
+.relationship-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #273244;
+  border-radius: 9px;
+  background: #121a25;
+}
+
+.relationship-summary span {
+  color: #fbbf24;
+}
+
+.relationship-editor label {
+  display: block;
+  margin-bottom: 12px;
+  color: #8593a8;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.relationship-editor input,
+.relationship-editor textarea {
+  width: 100%;
+  margin-top: 5px;
+  padding: 9px;
+  border: 1px solid #2b3749;
+  border-radius: 7px;
+  outline: none;
+  color: #e7edf7;
+  background: #0c131d;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.relationship-editor input:focus,
+.relationship-editor textarea:focus {
+  border-color: #7357ed;
+}
+
+.relationship-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
