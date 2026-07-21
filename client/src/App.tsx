@@ -5,6 +5,7 @@ import {
   useState,
 } from 'react'
 import './App.css'
+import { useApiHealth } from './hooks/useApiHealth'
 import {
   EntityCreationWizard,
   type NewEntityDetails,
@@ -158,6 +159,10 @@ function createStarterProject(): ProjectData {
 const nodeTypes = entityTypes
 
 function App() {
+  const {
+    status: apiStatus,
+    health: apiHealth,
+  } = useApiHealth()
   const fileInputRef =
     useRef<HTMLInputElement | null>(
       null,
@@ -1047,6 +1052,31 @@ function App() {
             </span>
 
             <span className="statusbar-spacer" />
+
+            <span
+              className={`api-status ${apiStatus}`}
+              title={
+                apiHealth
+                  ? `${apiHealth.service} ${apiHealth.version}`
+                  : 'Nexus API is not responding'
+              }
+            >
+              <i
+                className={`status-dot ${
+                  apiStatus === 'connected'
+                    ? 'online'
+                    : apiStatus === 'checking'
+                      ? 'checking'
+                      : 'error'
+                }`}
+              />
+
+              {apiStatus === 'connected'
+                ? 'API Connected'
+                : apiStatus === 'checking'
+                  ? 'Checking API…'
+                  : 'API Disconnected'}
+            </span>
 
             <span>
               ⌘Z Undo · ⇧⌘Z Redo ·

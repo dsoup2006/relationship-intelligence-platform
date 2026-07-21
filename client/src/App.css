@@ -709,3 +709,37 @@ kbd {
   color: #ddd6fe;
   background: #30265e;
 }
+
+.api-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.api-status.connected {
+  color: #86efac;
+}
+
+.api-status.checking {
+  color: #facc15;
+}
+
+.api-status.disconnected {
+  color: #fca5a5;
+}
+
+.status-dot.checking {
+  background: #facc15;
+  animation: api-pulse 1.2s infinite;
+}
+
+@keyframes api-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
