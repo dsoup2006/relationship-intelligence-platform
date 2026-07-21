@@ -12,6 +12,7 @@ import { IntelligencePanel } from './features/intelligence/IntelligencePanel'
 import { TimelineView } from './features/views/TimelineView'
 import { DashboardView } from './features/views/DashboardView'
 import { analyzeGraph } from './features/intelligence/analytics'
+import { buildSuggestedConnections } from './features/intelligence/suggestedConnections'
 import { useHistoryState } from './hooks/useHistoryState'
 import {
   createEmptyProject,
@@ -216,6 +217,11 @@ function App() {
   const [showIntelligence, setShowIntelligence] =
     useState(false)
 
+  const [
+    showSuggestedConnections,
+    setShowSuggestedConnections,
+  ] = useState(true)
+
   const [activeView, setActiveView] = useState<
     'graph' | 'timeline' | 'dashboard'
   >('graph')
@@ -233,6 +239,11 @@ function App() {
 
   const analytics = useMemo(
     () => analyzeGraph(nodes, edges),
+    [nodes, edges],
+  )
+
+  const suggestedConnections = useMemo(
+    () => buildSuggestedConnections(nodes, edges),
     [nodes, edges],
   )
 
@@ -910,6 +921,22 @@ function App() {
 
             <button
               className={
+                showSuggestedConnections
+                  ? 'suggestion-toggle active'
+                  : 'suggestion-toggle'
+              }
+              onClick={() =>
+                setShowSuggestedConnections(
+                  (current) => !current,
+                )
+              }
+              title="Show or hide automatic similarity links"
+            >
+              ◌ Suggested links
+            </button>
+
+            <button
+              className={
                 showIntelligence
                   ? 'intelligence-button active'
                   : 'intelligence-button'
@@ -958,6 +985,10 @@ function App() {
               <GraphCanvas
                 nodes={nodes}
                 edges={edges}
+                suggestedConnections={suggestedConnections}
+                showSuggestedConnections={
+                  showSuggestedConnections
+                }
                 selectedNodeId={selectedNodeId}
                 selectedEdgeId={selectedEdgeId}
                 connectSourceId={connectSourceId}

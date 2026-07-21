@@ -702,3 +702,10 @@ kbd {
   color: #fff;
   background: #6047df;
 }
+
+
+.suggestion-toggle.active {
+  border-color: #8b5cf6;
+  color: #ddd6fe;
+  background: #30265e;
+}

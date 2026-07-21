@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react'
 import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
 import type { GraphEdge, GraphNode } from '../../types/graph'
+import type { SuggestedConnection } from '../intelligence/suggestedConnections'
 import './GraphCanvas.css'
 
 interface GraphCanvasProps {
   nodes: GraphNode[]
   edges: GraphEdge[]
+  suggestedConnections: SuggestedConnection[]
+  showSuggestedConnections: boolean
   selectedNodeId: string | null
   selectedEdgeId: string | null
   connectSourceId: string | null
@@ -43,6 +46,8 @@ function toElements(
 export function GraphCanvas({
   nodes,
   edges,
+  suggestedConnections,
+  showSuggestedConnections,
   selectedNodeId,
   selectedEdgeId,
   connectSourceId,
@@ -158,6 +163,28 @@ export function GraphCanvas({
             'target-arrow-color': '#53627a',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
+          },
+        },
+        {
+          selector: 'edge[kind = "suggested"]',
+          style: {
+            width: 'mapData(score, 20, 100, 1.5, 5)',
+            label: 'data(label)',
+            'font-size': 9,
+            color: '#c4b5fd',
+            'text-outline-color': '#0c121b',
+            'text-outline-width': 3,
+            'line-color': '#8b5cf6',
+            'line-style': 'dashed',
+            'target-arrow-shape': 'none',
+            'curve-style': 'bezier',
+            opacity: 0.7,
+          },
+        },
+        {
+          selector: 'edge[kind = "confirmed"]',
+          style: {
+            'target-arrow-shape': 'triangle',
           },
         },
         {
@@ -327,6 +354,10 @@ export function GraphCanvas({
     })
 
     cy.on('tap', 'edge', (event) => {
+      if (event.target.data('kind') === 'suggested') {
+        return
+      }
+
       callbacksRef.current.onSelectEdge(event.target.id())
       callbacksRef.current.onSelectNode(null)
     })
@@ -367,8 +398,14 @@ export function GraphCanvas({
     }
 
     const desiredNodeIds = new Set(nodes.map((node) => node.id))
-    const desiredEdgeIds = new Set(edges.map((edge) => edge.id))
-
+    const desiredEdgeIds = new Set([
+      ...edges.map((edge) => edge.id),
+      ...(showSuggestedConnections
+        ? suggestedConnections.map(
+            (connection) => connection.id,
+          )
+        : []),
+    ])
     cy.startBatch()
 
     cy.nodes().forEach((node) => {
@@ -415,6 +452,7 @@ export function GraphCanvas({
           label: edge.label,
           strength: edge.strength,
           confidence: edge.confidence,
+          kind: 'confirmed',
         })
       } else {
         cy.add({
@@ -426,13 +464,45 @@ export function GraphCanvas({
             label: edge.label,
             strength: edge.strength,
             confidence: edge.confidence,
+          kind: 'confirmed',
           },
         })
       }
     })
 
+
+    if (showSuggestedConnections) {
+      suggestedConnections.forEach((connection) => {
+        const existingEdge = cy.getElementById(connection.id)
+
+        const data = {
+          id: connection.id,
+          source: connection.source,
+          target: connection.target,
+          label: `${connection.score}% match`,
+          score: connection.score,
+          reasons: connection.reasons.join(' • '),
+          kind: 'suggested',
+        }
+
+        if (existingEdge.length) {
+          existingEdge.data(data)
+        } else {
+          cy.add({
+            group: 'edges',
+            data,
+          })
+        }
+      })
+    }
+
     cy.endBatch()
-  }, [nodes, edges])
+  }, [
+    nodes,
+    edges,
+    suggestedConnections,
+    showSuggestedConnections,
+  ])
 
   useEffect(() => {
     const cy = cytoscapeRef.current
