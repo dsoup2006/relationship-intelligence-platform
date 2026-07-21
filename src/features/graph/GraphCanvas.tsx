@@ -186,7 +186,134 @@ export function GraphCanvas({
     })
 
     cytoscapeRef.current = cy
+    let collisionFrame: number | null = null
+    let settlingLayout: ReturnType<Core['layout']> | null = null
 
+    function moveNearbyNodesAway(
+      draggedNode: cytoscape.NodeSingular,
+    ) {
+      if (collisionFrame !== null) {
+        window.cancelAnimationFrame(collisionFrame)
+      }
+
+      collisionFrame = window.requestAnimationFrame(() => {
+        const draggedPosition = draggedNode.position()
+        const minimumDistance = 115
+
+        cy.nodes()
+          .not(draggedNode)
+          .forEach((otherNode) => {
+            const otherPosition = otherNode.position()
+
+            let deltaX =
+              otherPosition.x - draggedPosition.x
+
+            let deltaY =
+              otherPosition.y - draggedPosition.y
+
+            let distance = Math.hypot(
+              deltaX,
+              deltaY,
+            )
+
+            if (distance < 1) {
+              deltaX = Math.random() * 4 - 2
+              deltaY = Math.random() * 4 - 2
+              distance = Math.max(
+                Math.hypot(deltaX, deltaY),
+                1,
+              )
+            }
+
+            if (distance >= minimumDistance) {
+              return
+            }
+
+            const overlap =
+              minimumDistance - distance
+
+            const movement =
+              Math.min(overlap * 0.22, 14)
+
+            otherNode.position({
+              x:
+                otherPosition.x +
+                (deltaX / distance) *
+                  movement,
+
+              y:
+                otherPosition.y +
+                (deltaY / distance) *
+                  movement,
+            })
+          })
+
+        collisionFrame = null
+      })
+    }
+
+    function gentlySettleGraph(
+      draggedNode: cytoscape.NodeSingular,
+    ) {
+      settlingLayout?.stop()
+
+      /*
+       * Keep the node the user moved in place.
+       * The surrounding nodes are allowed to adjust.
+       */
+      draggedNode.lock()
+
+      settlingLayout = cy.layout({
+        name: 'cose',
+        animate: true,
+        animationDuration: 450,
+        randomize: false,
+        fit: false,
+        padding: 50,
+
+        nodeRepulsion: () => 12000,
+        idealEdgeLength: () => 175,
+        edgeElasticity: () => 80,
+
+        nodeOverlap: 55,
+        gravity: 0.18,
+
+        numIter: 180,
+        initialTemp: 90,
+        coolingFactor: 0.92,
+        minTemp: 1,
+      })
+
+      settlingLayout.one(
+        'layoutstop',
+        () => {
+          draggedNode.unlock()
+          settlingLayout = null
+        },
+      )
+
+      settlingLayout.run()
+    }
+
+    cy.on(
+      'drag',
+      'node',
+      (event) => {
+        moveNearbyNodesAway(
+          event.target,
+        )
+      },
+    )
+
+    cy.on(
+      'dragfree',
+      'node',
+      (event) => {
+        gentlySettleGraph(
+          event.target,
+        )
+      },
+    )
     cy.on('tap', 'node', (event) => {
       const nodeId = event.target.id()
 
@@ -218,10 +345,18 @@ export function GraphCanvas({
     resizeObserver.observe(containerRef.current)
 
     return () => {
-      resizeObserver.disconnect()
-      cy.destroy()
-      cytoscapeRef.current = null
-    }
+  resizeObserver.disconnect()
+
+  if (collisionFrame !== null) {
+    window.cancelAnimationFrame(
+      collisionFrame,
+    )
+  }
+
+  settlingLayout?.stop()
+  cy.destroy()
+  cytoscapeRef.current = null
+}
   }, [])
 
   useEffect(() => {
