@@ -1,0 +1,265 @@
+import { useEffect, useRef } from 'react'
+import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
+import type { GraphEdge, GraphNode } from '../../types/graph'
+import './GraphCanvas.css'
+
+interface GraphCanvasProps {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  selectedNodeId: string | null
+  onSelectNode: (nodeId: string | null) => void
+}
+
+function toElements(
+  nodes: GraphNode[],
+  edges: GraphEdge[],
+): ElementDefinition[] {
+  return [
+    ...nodes.map((node) => ({
+      data: {
+        id: node.id,
+        label: node.label,
+        type: node.type,
+        gender: node.gender ?? 'unspecified',
+      },
+    })),
+    ...edges.map((edge) => ({
+      data: {
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        label: edge.label,
+      },
+    })),
+  ]
+}
+
+export function GraphCanvas({
+  nodes,
+  edges,
+  selectedNodeId,
+  onSelectNode,
+}: GraphCanvasProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const cytoscapeRef = useRef<Core | null>(null)
+  const onSelectNodeRef = useRef(onSelectNode)
+
+  useEffect(() => {
+    onSelectNodeRef.current = onSelectNode
+  }, [onSelectNode])
+
+  useEffect(() => {
+    if (!containerRef.current) {
+      return
+    }
+
+    const cy = cytoscape({
+      container: containerRef.current,
+      elements: toElements(nodes, edges),
+
+      style: [
+        {
+          selector: 'node',
+          style: {
+            width: 64,
+            height: 64,
+            label: 'data(label)',
+            'text-valign': 'bottom',
+            'text-margin-y': 10,
+            'font-size': 12,
+            'font-weight': 700,
+            color: '#dce5f2',
+            'text-outline-color': '#0c121b',
+            'text-outline-width': 3,
+            'border-width': 4,
+            'border-color': '#101721',
+            'background-color': '#7c5cff',
+          },
+        },
+        {
+          selector: 'node[gender = "male"]',
+          style: {
+            'background-color': '#2563eb',
+          },
+        },
+        {
+          selector: 'node[gender = "female"]',
+          style: {
+            'background-color': '#dc2626',
+          },
+        },
+        {
+          selector: 'node[type = "company"]',
+          style: {
+            shape: 'round-rectangle',
+            'background-color': '#0f9f78',
+          },
+        },
+        {
+          selector: 'node[type = "church"]',
+          style: {
+            shape: 'diamond',
+            'background-color': '#d97706',
+          },
+        },
+        {
+          selector: 'node[type = "school"]',
+          style: {
+            shape: 'hexagon',
+            'background-color': '#0891b2',
+          },
+        },
+        {
+          selector: 'node:selected',
+          style: {
+            width: 76,
+            height: 76,
+            'border-width': 7,
+            'border-color': '#fbbf24',
+            'overlay-opacity': 0,
+          },
+        },
+        {
+          selector: 'edge',
+          style: {
+            width: 2,
+            label: 'data(label)',
+            'font-size': 10,
+            color: '#8492a6',
+            'text-outline-color': '#0c121b',
+            'text-outline-width': 3,
+            'line-color': '#53627a',
+            'target-arrow-color': '#53627a',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+          },
+        },
+      ],
+
+      layout: {
+        name: 'cose',
+        animate: true,
+        animationDuration: 500,
+        nodeRepulsion: () => 9000,
+        idealEdgeLength: () => 150,
+        nodeOverlap: 40,
+        gravity: 0.3,
+      },
+
+      minZoom: 0.2,
+      maxZoom: 3,
+      wheelSensitivity: 0.22,
+    })
+
+    cytoscapeRef.current = cy
+
+    cy.on('tap', 'node', (event) => {
+      onSelectNodeRef.current(event.target.id())
+    })
+
+    cy.on('tap', (event) => {
+      if (event.target === cy) {
+        onSelectNodeRef.current(null)
+      }
+    })
+
+    const resizeObserver = new ResizeObserver(() => {
+      cy.resize()
+    })
+
+    resizeObserver.observe(containerRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
+      cy.destroy()
+      cytoscapeRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    const cy = cytoscapeRef.current
+
+    if (!cy) {
+      return
+    }
+
+    const desiredNodeIds = new Set(nodes.map((node) => node.id))
+    const desiredEdgeIds = new Set(edges.map((edge) => edge.id))
+
+    cy.startBatch()
+
+    cy.nodes().forEach((node) => {
+      if (!desiredNodeIds.has(node.id())) {
+        node.remove()
+      }
+    })
+
+    cy.edges().forEach((edge) => {
+      if (!desiredEdgeIds.has(edge.id())) {
+        edge.remove()
+      }
+    })
+
+    nodes.forEach((node) => {
+      const existingNode = cy.getElementById(node.id)
+
+      if (existingNode.length) {
+        existingNode.data({
+          label: node.label,
+          type: node.type,
+          gender: node.gender ?? 'unspecified',
+        })
+      } else {
+        cy.add({
+          group: 'nodes',
+          data: {
+            id: node.id,
+            label: node.label,
+            type: node.type,
+            gender: node.gender ?? 'unspecified',
+          },
+        })
+      }
+    })
+
+    edges.forEach((edge) => {
+      const existingEdge = cy.getElementById(edge.id)
+
+      if (existingEdge.length) {
+        existingEdge.data({
+          source: edge.source,
+          target: edge.target,
+          label: edge.label,
+        })
+      } else {
+        cy.add({
+          group: 'edges',
+          data: {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            label: edge.label,
+          },
+        })
+      }
+    })
+
+    cy.endBatch()
+  }, [nodes, edges])
+
+  useEffect(() => {
+    const cy = cytoscapeRef.current
+
+    if (!cy) {
+      return
+    }
+
+    cy.$(':selected').unselect()
+
+    if (selectedNodeId) {
+      cy.getElementById(selectedNodeId).select()
+    }
+  }, [selectedNodeId])
+
+  return <div ref={containerRef} className="graph-canvas" />
+}
