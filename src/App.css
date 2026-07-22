@@ -709,3 +709,44 @@ kbd {
   color: #ddd6fe;
   background: #30265e;
 }
+
+button,
+.primary-button,
+.history-button,
+.intelligence-button,
+.suggestion-toggle,
+.suggestions-review-button,
+.node-list-item,
+.saved-view,
+.project-actions button,
+.canvas-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.node-list-item,
+.saved-view {
+  justify-content: flex-start;
+}
+
+.tag-chip {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.tag-chip span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-field-row button,
+.tag-chip button {
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}

@@ -5,7 +5,6 @@ import {
 } from '../../config/entityTypes'
 import type {
   Gender,
-  GraphNode,
   NodeType,
 } from '../../types/graph'
 import './EntityCreationWizard.css'

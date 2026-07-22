@@ -96,8 +96,9 @@ export function GraphCanvas({
             width: 64,
             height: 64,
             label: 'data(label)',
-            'text-valign': 'bottom',
-            'text-margin-y': 10,
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'text-margin-y': 0,
             'font-size': 12,
             'font-weight': 700,
             color: '#dce5f2',
@@ -153,6 +154,7 @@ export function GraphCanvas({
             color: '#dce5f2',
             'text-valign': 'center',
             'text-halign': 'center',
+            'text-justification': 'center',
             'text-wrap': 'wrap',
             'text-max-width': '135px',
             'background-color': '#334155',
@@ -337,44 +339,14 @@ export function GraphCanvas({
     function gentlySettleGraph(
       draggedNode: cytoscape.NodeSingular,
     ) {
-      settlingLayout?.stop()
-
       /*
-       * Keep the node the user moved in place.
-       * The surrounding nodes are allowed to adjust.
+       * The separate graphMotion engine now controls spring
+       * settling. Do not run a CoSE layout here because that
+       * immediately cancels the displaced nodes' momentum.
        */
-      draggedNode.lock()
-
-      settlingLayout = cy.layout({
-        name: 'cose',
-        animate: true,
-        animationDuration: 450,
-        randomize: false,
-        fit: false,
-        padding: 50,
-
-        nodeRepulsion: () => 12000,
-        idealEdgeLength: () => 175,
-        edgeElasticity: () => 80,
-
-        nodeOverlap: 55,
-        gravity: 0.18,
-
-        numIter: 180,
-        initialTemp: 90,
-        coolingFactor: 0.92,
-        minTemp: 1,
-      })
-
-      settlingLayout.one(
-        'layoutstop',
-        () => {
-          draggedNode.unlock()
-          settlingLayout = null
-        },
-      )
-
-      settlingLayout.run()
+      settlingLayout?.stop()
+      settlingLayout = null
+      draggedNode.unlock()
     }
 
     cy.on(
