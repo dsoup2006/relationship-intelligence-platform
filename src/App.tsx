@@ -861,7 +861,7 @@ function App() {
               onClick={createNode}
               title="New node (Command N)"
             >
-              ＋ New node
+              ＋ New
             </button>
 
             <button
@@ -918,7 +918,7 @@ function App() {
               }
               title="Show or hide automatic similarity links"
             >
-              ◌ Suggested links
+              ◌ Links
             </button>
 
             <button
@@ -933,7 +933,7 @@ function App() {
                 )
               }
             >
-              ◈ Intelligence
+              ◈ Insights
             </button>
 
             {connectSourceId ? (
@@ -950,14 +950,14 @@ function App() {
                     )
                   }
                 >
-                  Cancel connection
+                  Cancel
                 </button>
               </>
             ) : (
               <button
                 onClick={startConnecting}
               >
-                Connect selected node
+                Connect
               </button>
             )}
           </div>

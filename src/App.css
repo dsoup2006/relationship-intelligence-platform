@@ -750,3 +750,226 @@ button,
   place-items: center;
   line-height: 1;
 }
+
+
+/* ===== Compact Toolbar ===== */
+
+.canvas-toolbar button,
+.toolbar button,
+.graph-toolbar button {
+    font-size: 11px !important;
+    font-weight: 600;
+    line-height: 1;
+    padding: 6px 10px;
+    min-height: 30px;
+    border-radius: 8px;
+}
+
+.canvas-toolbar svg,
+.toolbar svg,
+.graph-toolbar svg {
+    width: 14px;
+    height: 14px;
+}
+
+.canvas-toolbar button span,
+.toolbar button span,
+.graph-toolbar button span {
+    font-size: 11px;
+}
+
+
+/* ==================================================
+   Compact grouped workspace toolbar
+   ================================================== */
+
+.canvas-toolbar {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #253044;
+  background:
+    linear-gradient(
+      180deg,
+      #151e2a 0%,
+      #111923 100%
+    );
+}
+
+/* Standard toolbar buttons */
+.canvas-toolbar > button,
+.canvas-toolbar .history-button,
+.canvas-toolbar .intelligence-button,
+.canvas-toolbar .suggestion-toggle,
+.canvas-toolbar .suggestions-review-button {
+  min-height: 29px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 9px;
+  border: 1px solid #303c50;
+  border-radius: 7px;
+  color: #aeb9c9;
+  background: #182230;
+  box-shadow: none;
+  font-size: 10px !important;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.canvas-toolbar > button:hover:not(:disabled),
+.canvas-toolbar .history-button:hover:not(:disabled),
+.canvas-toolbar .intelligence-button:hover,
+.canvas-toolbar .suggestion-toggle:hover,
+.canvas-toolbar .suggestions-review-button:hover {
+  border-color: #53647d;
+  color: #f8fafc;
+  background: #202d3e;
+}
+
+/* Main create action */
+.canvas-toolbar .primary-button {
+  min-height: 31px;
+  padding: 0 12px;
+  border-color: #684fe0;
+  color: #fff;
+  background: #6047df;
+  font-size: 10px !important;
+}
+
+.canvas-toolbar .primary-button:hover {
+  border-color: #8069eb;
+  background: #6d55e5;
+}
+
+/* Undo and redo appear as one control group */
+.canvas-toolbar .history-button {
+  margin: 0;
+  border-radius: 0;
+}
+
+.canvas-toolbar .history-button:nth-of-type(2) {
+  margin-left: 5px;
+  border-radius: 7px 0 0 7px;
+}
+
+.canvas-toolbar .history-button:nth-of-type(3) {
+  margin-left: -6px;
+  border-left-color: #263246;
+  border-radius: 0 7px 7px 0;
+}
+
+.canvas-toolbar .history-button:disabled {
+  color: #566276;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* Graph, Timeline and Dashboard control */
+.canvas-toolbar .view-switcher {
+  min-height: 31px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 5px;
+  padding: 3px;
+  border: 1px solid #303c50;
+  border-radius: 8px;
+  background: #0d141e;
+}
+
+.canvas-toolbar .view-switcher button {
+  min-height: 23px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  color: #7f8ca0;
+  background: transparent;
+  font-size: 9px !important;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.canvas-toolbar .view-switcher button:hover {
+  color: #dce5f2;
+  background: #1c2736;
+}
+
+.canvas-toolbar .view-switcher button.active {
+  color: #fff;
+  background: #6047df;
+}
+
+/* Intelligence tools share the violet visual language */
+.canvas-toolbar .suggestions-review-button,
+.canvas-toolbar .suggestion-toggle,
+.canvas-toolbar .intelligence-button {
+  color: #b9afe8;
+  background: #1d1b31;
+  border-color: #3c365f;
+}
+
+.canvas-toolbar .suggestions-review-button.active,
+.canvas-toolbar .suggestion-toggle.active,
+.canvas-toolbar .intelligence-button.active {
+  border-color: #7c5cff;
+  color: #eeeaff;
+  background: #352a68;
+}
+
+/* Suggestion count */
+.canvas-toolbar .suggestions-badge {
+  min-width: 15px;
+  height: 15px;
+  display: inline-grid;
+  place-items: center;
+  margin-left: 2px;
+  padding: 0 4px;
+  border-radius: 999px;
+  color: #fff;
+  background: #7c5cff;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+/* Active connection notice */
+.canvas-toolbar .connect-message {
+  margin-left: 5px;
+  color: #86efac;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+/* Keep long toolbars usable on narrower screens */
+@media (max-width: 1150px) {
+  .canvas-toolbar {
+    align-content: center;
+  }
+
+  .canvas-toolbar .view-switcher {
+    order: 10;
+  }
+}
+
+@media (max-width: 850px) {
+  .canvas-toolbar {
+    gap: 4px;
+    padding: 7px;
+  }
+
+  .canvas-toolbar > button,
+  .canvas-toolbar .history-button,
+  .canvas-toolbar .intelligence-button,
+  .canvas-toolbar .suggestion-toggle,
+  .canvas-toolbar .suggestions-review-button {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 9px !important;
+  }
+}
