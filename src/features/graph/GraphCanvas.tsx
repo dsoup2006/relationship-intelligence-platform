@@ -176,6 +176,60 @@ export function GraphCanvas({
           },
         },
         {
+          selector: 'node.focus-dimmed',
+          style: {
+            opacity: 0.1,
+            'text-opacity': 0.08,
+          },
+        },
+        {
+          selector: 'edge.focus-dimmed',
+          style: {
+            opacity: 0.06,
+            'text-opacity': 0,
+          },
+        },
+        {
+          selector: 'node.focus-center',
+          style: {
+            width: 92,
+            height: 92,
+            'border-width': 7,
+            'border-color': '#fbbf24',
+            'font-size': 15,
+            'font-weight': 800,
+            'overlay-color': '#fbbf24',
+            'overlay-opacity': 0.12,
+            'overlay-padding': '14px',
+            'z-index': 100,
+          },
+        },
+        {
+          selector: 'node.attribute-spoke.attribute-focus',
+          style: {
+            'font-size': 12,
+            'font-weight': 750,
+            'text-max-width': '190px',
+            padding: '15px',
+            'border-width': 3,
+            'border-color': '#a78bfa',
+            'background-color': '#273449',
+            'overlay-color': '#8b5cf6',
+            'overlay-opacity': 0.08,
+            'overlay-padding': '8px',
+            'z-index': 110,
+          },
+        },
+        {
+          selector: 'edge.attribute-focus',
+          style: {
+            width: 2.5,
+            'line-color': '#a78bfa',
+            opacity: 0.95,
+            'z-index': 105,
+          },
+        },
+        {
           selector: 'node:selected',
           style: {
             width: 76,
@@ -390,7 +444,103 @@ export function GraphCanvas({
     )
     const expandedNodeIds = new Set<string>()
 
+    let focusedParentId: string | null = null
+
+    let previousViewport: {
+      zoom: number
+      pan: { x: number; y: number }
+    } | null = null
+
+    function clearAttributeFocus() {
+      cy.elements().removeClass(
+        'focus-dimmed focus-center attribute-focus',
+      )
+
+      focusedParentId = null
+
+      if (previousViewport) {
+        cy.animate(
+          {
+            zoom: previousViewport.zoom,
+            pan: previousViewport.pan,
+          },
+          {
+            duration: 350,
+            easing: 'ease-out',
+          },
+        )
+
+        previousViewport = null
+      }
+    }
+
+    function focusAttributeSpokes(parentId: string) {
+      const parentNode = cy.getElementById(parentId)
+
+      if (!parentNode.length) {
+        return
+      }
+
+      if (!previousViewport) {
+        previousViewport = {
+          zoom: cy.zoom(),
+          pan: cy.pan(),
+        }
+      }
+
+      focusedParentId = parentId
+
+      const spokeNodes = cy
+        .nodes()
+        .filter(
+          (node) =>
+            node.data('kind') === 'attribute' &&
+            node.data('spokeParent') === parentId,
+        )
+
+      const spokeEdges = cy
+        .edges()
+        .filter(
+          (edge) =>
+            edge.data('kind') === 'attribute' &&
+            edge.data('spokeParent') === parentId,
+        )
+
+      const focusedElements = parentNode
+        .union(spokeNodes)
+        .union(spokeEdges)
+
+      cy.elements()
+        .difference(focusedElements)
+        .addClass('focus-dimmed')
+
+      parentNode.addClass('focus-center')
+      spokeNodes.addClass('attribute-focus')
+      spokeEdges.addClass('attribute-focus')
+
+      window.setTimeout(() => {
+        const collection = parentNode.union(spokeNodes)
+
+        cy.animate(
+          {
+            fit: {
+              eles: collection,
+              padding: 95,
+            },
+          },
+          {
+            duration: 420,
+            easing: 'ease-out',
+          },
+        )
+      }, 340)
+    }
+
     function collapseAttributeSpokes(parentId: string) {
+      if (focusedParentId === parentId) {
+        clearAttributeFocus()
+      }
+
       cy.elements().filter((element) => {
         return element.data('spokeParent') === parentId
       }).remove()
@@ -566,6 +716,10 @@ export function GraphCanvas({
       })
 
       expandedNodeIds.add(parentId)
+
+      window.setTimeout(() => {
+        focusAttributeSpokes(parentId)
+      }, 40)
     }
 
     cy.on('dbltap', 'node', (event) => {
@@ -609,6 +763,10 @@ export function GraphCanvas({
       if (event.target === cy) {
         callbacksRef.current.onSelectNode(null)
         callbacksRef.current.onSelectEdge(null)
+
+        if (focusedParentId) {
+          clearAttributeFocus()
+        }
       }
     })
 
