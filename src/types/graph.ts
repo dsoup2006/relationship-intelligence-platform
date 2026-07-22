@@ -4,8 +4,16 @@ export type NodeType =
   | 'church'
   | 'school'
   | 'address'
+  | 'location'
+  | 'phone'
+  | 'email'
+  | 'website'
+  | 'socialAccount'
+  | 'vehicle'
   | 'event'
   | 'document'
+  | 'photo'
+  | 'asset'
 
 export type Gender = 'male' | 'female' | 'unspecified'
 

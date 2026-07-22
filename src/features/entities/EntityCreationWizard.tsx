@@ -112,13 +112,7 @@ export function EntityCreationWizard({
               onClick={() => setType(item.type)}
             >
               <span className="entity-type-symbol">
-                {item.type === 'person' && '●'}
-                {item.type === 'company' && '■'}
-                {item.type === 'church' && '◆'}
-                {item.type === 'school' && '⬢'}
-                {item.type === 'address' && '⌂'}
-                {item.type === 'event' && '◷'}
-                {item.type === 'document' && '▤'}
+                {item.symbol}
               </span>
 
               <span>
