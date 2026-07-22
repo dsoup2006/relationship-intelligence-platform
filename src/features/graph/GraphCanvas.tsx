@@ -3,6 +3,7 @@ import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
 import type { GraphEdge, GraphNode } from '../../types/graph'
 import { buildAttributeSpokes } from './attributeSpokes'
 import type { SuggestedConnection } from '../intelligence/suggestedConnections'
+import { startGraphMotion } from './graphMotion'
 import './GraphCanvas.css'
 
 interface GraphCanvasProps {
@@ -216,6 +217,7 @@ export function GraphCanvas({
             'text-outline-width': 4,
             'line-color': '#a78bfa',
             'line-style': 'dashed',
+            'line-dash-pattern': [6, 10],
             'target-arrow-shape': 'none',
 
             /*
@@ -234,6 +236,8 @@ export function GraphCanvas({
           selector: 'edge[kind = "confirmed"]',
           style: {
             'target-arrow-shape': 'triangle',
+            'line-style': 'dashed',
+            'line-dash-pattern': [18, 7],
           },
         },
         {
@@ -262,6 +266,8 @@ export function GraphCanvas({
     })
 
     cytoscapeRef.current = cy
+
+    const stopGraphMotion = startGraphMotion(cy)
     let collisionFrame: number | null = null
     let settlingLayout: ReturnType<Core['layout']> | null = null
 
@@ -650,6 +656,7 @@ export function GraphCanvas({
   }
 
   settlingLayout?.stop()
+  stopGraphMotion()
   cy.destroy()
   cytoscapeRef.current = null
 }
