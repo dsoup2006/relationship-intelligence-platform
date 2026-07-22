@@ -676,6 +676,8 @@ export function GraphCanvas({
             id: spoke.id,
             label: spoke.label,
             category: spoke.category,
+            rawValue: spoke.value,
+            fieldKey: spoke.fieldKey ?? '',
             kind: 'attribute',
             spokeParent: parentId,
             spokeIndex: index,
@@ -738,8 +740,150 @@ export function GraphCanvas({
       }
     })
 
+    function normalizeAttributeValue(value: unknown) {
+      return String(value ?? '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+    }
+
+    function nodeMatchesAttribute(
+      graphNode: GraphNode,
+      category: string,
+      rawValue: string,
+      fieldKey: string,
+    ) {
+      const value = normalizeAttributeValue(rawValue)
+
+      if (category === 'tag') {
+        return graphNode.tags.some(
+          (tag) => normalizeAttributeValue(tag) === value,
+        )
+      }
+
+      if (category === 'city') {
+        return normalizeAttributeValue(graphNode.city) === value
+      }
+
+      if (category === 'address') {
+        return normalizeAttributeValue(graphNode.address) === value
+      }
+
+      if (category === 'gender') {
+        return normalizeAttributeValue(graphNode.gender) === value
+      }
+
+      if (category === 'custom') {
+        const key = normalizeAttributeValue(fieldKey)
+
+        return graphNode.customFields.some(
+          (field) =>
+            normalizeAttributeValue(field.key) === key &&
+            normalizeAttributeValue(field.value) === value,
+        )
+      }
+
+      return false
+    }
+
+    function clearAttributeMatches() {
+      cy.elements().removeClass(
+        'attribute-match attribute-nonmatch attribute-selected',
+      )
+    }
+
+    function showAttributeMatches(
+      attributeNode: cytoscape.NodeSingular,
+    ) {
+      const parentId = String(
+        attributeNode.data('spokeParent') ?? '',
+      )
+
+      const category = String(
+        attributeNode.data('category') ?? '',
+      )
+
+      const rawValue = String(
+        attributeNode.data('rawValue') ?? '',
+      )
+
+      const fieldKey = String(
+        attributeNode.data('fieldKey') ?? '',
+      )
+
+      const matches = graphNodesRef.current.filter(
+        (node) =>
+          node.id !== parentId &&
+          nodeMatchesAttribute(
+            node,
+            category,
+            rawValue,
+            fieldKey,
+          ),
+      )
+
+      clearAttributeMatches()
+      attributeNode.addClass('attribute-selected')
+
+      const matchIds = new Set(
+        matches.map((node) => node.id),
+      )
+
+      cy.nodes().forEach((node) => {
+        if (node.data('kind') === 'attribute') {
+          return
+        }
+
+        if (
+          node.id() === parentId ||
+          matchIds.has(node.id())
+        ) {
+          node.addClass('attribute-match')
+        } else {
+          node.addClass('attribute-nonmatch')
+        }
+      })
+
+      cy.edges().forEach((edge) => {
+        const source = edge.source().id()
+        const target = edge.target().id()
+
+        if (
+          !matchIds.has(source) &&
+          !matchIds.has(target) &&
+          source !== parentId &&
+          target !== parentId
+        ) {
+          edge.addClass('attribute-nonmatch')
+        }
+      })
+
+      if (matches.length === 0) {
+        window.alert(
+          `No other nodes match "${attributeNode.data('label')}".`,
+        )
+      } else {
+        window.alert(
+          `Found ${matches.length} matching node${
+            matches.length === 1 ? '' : 's'
+          }:\n\n${matches
+            .map((node) => node.label)
+            .join('\n')}`,
+        )
+      }
+    }
+
     cy.on('tap', 'node', (event) => {
-      const nodeId = event.target.id()
+      const tappedNode = event.target
+
+      if (tappedNode.data('kind') === 'attribute') {
+        showAttributeMatches(tappedNode)
+        return
+      }
+
+      clearAttributeMatches()
+
+      const nodeId = tappedNode.id()
 
       if (connectSourceId) {
         callbacksRef.current.onConnectTarget(nodeId)
