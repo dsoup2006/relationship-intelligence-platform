@@ -19,6 +19,7 @@ import { DashboardView } from './features/views/DashboardView'
 import { analyzeGraph } from './features/intelligence/analytics'
 import { buildSuggestedConnections } from './features/intelligence/suggestedConnections'
 import { useHistoryState } from './hooks/useHistoryState'
+import { Explorer } from './components/Explorer/Explorer'
 import {
   createEmptyProject,
   downloadProject,
@@ -177,6 +178,7 @@ function App() {
 
   const [selectedNodeId, setSelectedNodeId] =
     useState<string | null>(null)
+
 
   const [selectedEdgeId, setSelectedEdgeId] =
     useState<string | null>(null)
@@ -744,43 +746,20 @@ function App() {
               ＋
             </button>
           </div>
-
-          <nav className="node-list">
-            <button className="node-list-item active">
-              <span className="node-icon">
-                ◎
-              </span>
-
-              <span>All nodes</span>
-
-              <span className="node-count">
-                {nodes.length}
-              </span>
-            </button>
-
-            {nodeTypes.map((item) => (
-              <button
-                className="node-list-item"
-                key={item.type}
-              >
-                <span className="node-icon">
-                  ●
-                </span>
-
-                <span>{item.label}</span>
-
-                <span className="node-count">
-                  {
-                    nodes.filter(
-                      (node) =>
-                        node.type ===
-                        item.type,
-                    ).length
-                  }
-                </span>
-              </button>
-            ))}
-          </nav>
+<Explorer
+  nodes={nodes}
+  entityTypes={nodeTypes}
+  selectedNodeId={selectedNodeId}
+  onSelectNode={(nodeId) => {
+    setSelectedNodeId(nodeId)
+    setSelectedEdgeId(null)
+    setActiveView('graph')
+  }}
+  onClearSelection={() => {
+    setSelectedNodeId(null)
+    setSelectedEdgeId(null)
+  }}
+/>
 
           {search && (
             <div className="search-results">
@@ -811,7 +790,33 @@ function App() {
               )}
             </div>
           )}
-
+<Explorer
+  nodes={nodes}
+  entityTypes={nodeTypes}
+  selectedNodeId={selectedNodeId}
+  onSelectNode={(nodeId) => {
+    setSelectedNodeId(nodeId)
+    setSelectedEdgeId(null)
+    setActiveView('graph')
+  }}
+  onClearSelection={() => {
+    setSelectedNodeId(null)
+    setSelectedEdgeId(null)
+  }}
+/><Explorer
+  nodes={nodes}
+  entityTypes={nodeTypes}
+  selectedNodeId={selectedNodeId}
+  onSelectNode={(nodeId) => {
+    setSelectedNodeId(nodeId)
+    setSelectedEdgeId(null)
+    setActiveView('graph')
+  }}
+  onClearSelection={() => {
+    setSelectedNodeId(null)
+    setSelectedEdgeId(null)
+  }}
+/>
           <div className="project-actions">
             <button
               onClick={createNewProject}

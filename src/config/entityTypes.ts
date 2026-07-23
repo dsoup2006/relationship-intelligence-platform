@@ -5,8 +5,8 @@ export interface EntityTypeDefinition {
   label: string
   singularLabel: string
   symbol: string
+  color: string
   defaultRelationship: string
-  description: string
 }
 
 export const entityTypes: EntityTypeDefinition[] = [
@@ -14,133 +14,129 @@ export const entityTypes: EntityTypeDefinition[] = [
     type: 'person',
     label: 'People',
     singularLabel: 'Person',
-    symbol: '●',
-    defaultRelationship: 'connected to',
-    description: 'An individual person',
+    symbol: '👤',
+    color: '#3b82f6',
+    defaultRelationship: 'knows',
   },
   {
     type: 'company',
     label: 'Companies',
     singularLabel: 'Company',
-    symbol: '■',
+    symbol: '🏢',
+    color: '#10b981',
     defaultRelationship: 'works at',
-    description: 'A business or employer',
   },
   {
     type: 'church',
     label: 'Churches',
     singularLabel: 'Church',
-    symbol: '◆',
+    symbol: '⛪',
+    color: '#8b5cf6',
     defaultRelationship: 'attends',
-    description: 'A church or ministry',
   },
   {
     type: 'school',
     label: 'Schools',
     singularLabel: 'School',
-    symbol: '⬢',
+    symbol: '🎓',
+    color: '#f59e0b',
     defaultRelationship: 'attended',
-    description: 'A school or educational institution',
   },
   {
     type: 'address',
     label: 'Addresses',
     singularLabel: 'Address',
-    symbol: '⌂',
+    symbol: '📍',
+    color: '#ef4444',
     defaultRelationship: 'lives at',
-    description: 'A street address or household',
   },
   {
     type: 'location',
     label: 'Locations',
     singularLabel: 'Location',
-    symbol: '⌖',
+    symbol: '🌍',
+    color: '#06b6d4',
     defaultRelationship: 'located in',
-    description: 'A city, region, or geographic place',
   },
   {
     type: 'phone',
     label: 'Phones',
     singularLabel: 'Phone',
-    symbol: '☎',
+    symbol: '📞',
+    color: '#64748b',
     defaultRelationship: 'uses',
-    description: 'A phone number',
   },
   {
     type: 'email',
     label: 'Emails',
     singularLabel: 'Email',
-    symbol: '✉',
+    symbol: '✉️',
+    color: '#6366f1',
     defaultRelationship: 'uses',
-    description: 'An email address',
   },
   {
     type: 'website',
     label: 'Websites',
     singularLabel: 'Website',
-    symbol: '◎',
-    defaultRelationship: 'associated with',
-    description: 'A website or web page',
+    symbol: '🌐',
+    color: '#0ea5e9',
+    defaultRelationship: 'owns',
   },
   {
     type: 'socialAccount',
-    label: 'Social accounts',
-    singularLabel: 'Social account',
+    label: 'Social Accounts',
+    singularLabel: 'Social Account',
     symbol: '@',
+    color: '#ec4899',
     defaultRelationship: 'owns',
-    description: 'A public social-media account',
   },
   {
     type: 'vehicle',
     label: 'Vehicles',
     singularLabel: 'Vehicle',
-    symbol: '▰',
+    symbol: '🚗',
+    color: '#f97316',
     defaultRelationship: 'owns',
-    description: 'A car, truck, boat, or other vehicle',
   },
   {
     type: 'event',
     label: 'Events',
     singularLabel: 'Event',
-    symbol: '◷',
+    symbol: '📅',
+    color: '#14b8a6',
     defaultRelationship: 'attended',
-    description: 'A dated meeting or event',
   },
   {
     type: 'document',
     label: 'Documents',
     singularLabel: 'Document',
-    symbol: '▤',
-    defaultRelationship: 'mentioned in',
-    description: 'A file, report, or record',
+    symbol: '📄',
+    color: '#6b7280',
+    defaultRelationship: 'mentions',
   },
   {
     type: 'photo',
     label: 'Photos',
     singularLabel: 'Photo',
-    symbol: '▧',
-    defaultRelationship: 'appears in',
-    description: 'A photograph or image',
+    symbol: '🖼️',
+    color: '#a855f7',
+    defaultRelationship: 'contains',
   },
   {
     type: 'asset',
     label: 'Assets',
     singularLabel: 'Asset',
-    symbol: '◇',
+    symbol: '💎',
+    color: '#84cc16',
     defaultRelationship: 'owns',
-    description: 'A property or other asset',
   },
 ]
-
 export const entityTypeValues: NodeType[] =
-  entityTypes.map((definition) => definition.type)
-
-export function getEntityTypeDefinition(
-  type: NodeType,
-): EntityTypeDefinition {
+  entityTypes.map((entity) => entity.type)
+  
+export function getEntityType(type: NodeType) {
   return (
-    entityTypes.find(
-      (definition) => definition.type === type,
-    ) ?? entityTypes[0]
+    entityTypes.find((entity) => entity.type === type) ??
+    entityTypes[0]
   )
 }

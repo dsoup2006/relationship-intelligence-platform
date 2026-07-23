@@ -142,6 +142,26 @@ export function GraphCanvas({
             'background-color': '#0891b2',
           },
         },
+
+        {
+          selector: 'node[type = "phone"]',
+  style: {
+    shape: 'round-rectangle',
+    'background-color': '#64748b',
+    'border-color': '#cbd5e1',
+    'border-width': 4,
+    width: 92,
+    height: 58,
+    color: '#ffffff',
+    'font-size': 11,
+    'font-weight': 700,
+    'text-valign': 'center',
+    'text-halign': 'center',
+    'text-wrap': 'wrap',
+    'text-max-width': '78px',
+  },
+},
+
         {
           selector: 'node.attribute-spoke',
           style: {

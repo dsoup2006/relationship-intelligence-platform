@@ -1,12 +1,15 @@
 import { useState } from 'react'
+
 import {
   entityTypes,
-  getEntityTypeDefinition,
+  getEntityType,
 } from '../../config/entityTypes'
+
 import type {
   Gender,
   NodeType,
 } from '../../types/graph'
+
 import './EntityCreationWizard.css'
 
 export interface NewEntityDetails {
@@ -37,7 +40,7 @@ export function EntityCreationWizard({
   const [city, setCity] = useState('')
   const [tagsText, setTagsText] = useState('')
 
-  const definition = getEntityTypeDefinition(type)
+  const definition = getEntityType(type)
 
   function submit(event: React.FormEvent) {
     event.preventDefault()

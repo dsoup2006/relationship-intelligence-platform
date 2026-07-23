@@ -1,0 +1,150 @@
+.nexus-explorer {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+}
+
+.nexus-explorer-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 9px 7px;
+  color: #69778b;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.explorer-group {
+  width: 100%;
+}
+
+.explorer-category {
+  width: 100%;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns:
+    13px
+    24px
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #96a3b5;
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  text-align: left;
+}
+
+.explorer-category:hover {
+  color: #e2e8f0;
+  background: #182230;
+}
+
+.explorer-category.active {
+  border-color: #5d4fc1;
+  color: #ffffff;
+  background: #2b2550;
+}
+
+.explorer-chevron {
+  display: grid;
+  place-items: center;
+  color: #68768a;
+  font-size: 16px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 160ms ease;
+}
+
+.explorer-chevron:empty {
+  visibility: hidden;
+}
+
+.explorer-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+.explorer-icon {
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.explorer-label {
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explorer-count {
+  min-width: 21px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #8491a4;
+  background: #111923;
+  font-size: 8px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.explorer-category.active
+  .explorer-count {
+  color: #ddd6fe;
+  background: #443879;
+}
+
+.explorer-children {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 7px;
+  padding-left: 24px;
+}
+
+.explorer-entity {
+  width: 100%;
+  min-height: 30px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #8190a4;
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  text-align: left;
+}
+
+.explorer-entity:hover {
+  color: #e2e8f0;
+  background: #182331;
+}
+
+.explorer-entity.active {
+  border-color: #6753ce;
+  color: #ffffff;
+  background: #30265e;
+}
+
+.explorer-entity span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explorer-empty {
+  padding: 7px 8px;
+  color: #59677a;
+  font-size: 9px;
+  font-style: italic;
+}

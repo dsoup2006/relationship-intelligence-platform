@@ -973,3 +973,60 @@ button,
     font-size: 9px !important;
   }
 }
+.entity-explorer-group {
+  width: 100%;
+}
+
+.node-list-item.active {
+  border-color: #7c5cff;
+  color: #ffffff;
+  background: #30265e;
+}
+
+.entity-explorer-children {
+  display: grid;
+  gap: 3px;
+  margin: 3px 0 7px;
+  padding-left: 18px;
+}
+
+.entity-explorer-child {
+  width: 100%;
+  min-height: 30px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #8f9caf;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.entity-explorer-child:hover {
+  color: #ffffff;
+  background: #182331;
+}
+
+.entity-explorer-child.active {
+  border-color: #6753ce;
+  color: #ffffff;
+  background: #2c2455;
+}
+
+.entity-explorer-child span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entity-explorer-empty {
+  padding: 7px 8px;
+  color: #59677a;
+  font-size: 9px;
+  font-style: italic;
+}
