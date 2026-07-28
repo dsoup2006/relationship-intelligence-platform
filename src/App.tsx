@@ -180,8 +180,20 @@ function App() {
     createStarterProject(),
   )
 
-  const [favoriteNodeIds, setFavoriteNodeIds] =
-  useState<string[]>([])
+ const [favoriteNodeIds, setFavoriteNodeIds] =
+  useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(
+        'nexus-favorite-node-ids',
+      )
+
+      return saved
+        ? JSON.parse(saved)
+        : []
+    } catch {
+      return []
+    }
+  })
 
   const [selectedNodeId, setSelectedNodeId] =
     useState<string | null>(null)
@@ -313,6 +325,13 @@ function App() {
     selectedEdgeId,
     connectSourceId,
   ])
+
+  useEffect(() => {
+    localStorage.setItem(
+      'nexus-favorite-node-ids',
+      JSON.stringify(favoriteNodeIds),
+    )
+  }, [favoriteNodeIds])
 
   const selectedNode = useMemo(
     () =>
