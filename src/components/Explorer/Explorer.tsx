@@ -12,6 +12,8 @@ interface ExplorerProps {
   nodes: GraphNode[]
   entityTypes: EntityTypeDefinition[]
   selectedNodeId: string | null
+  favoriteNodeIds: string[]
+  onToggleFavorite: (nodeId: string) => void
   onSelectNode: (nodeId: string) => void
   onClearSelection: () => void
 }
@@ -48,6 +50,8 @@ export function Explorer({
   nodes,
   entityTypes,
   selectedNodeId,
+  favoriteNodeIds,
+  onToggleFavorite,
   onSelectNode,
   onClearSelection,
 }: ExplorerProps) {
@@ -112,7 +116,51 @@ export function Explorer({
           </button>
         )}
       </div>
+<div className="nexus-explorer-heading">
+  <span>Favorites</span>
+  <span>{favoriteNodeIds.length}</span>
+</div>
 
+<div className="explorer-favorites">
+  {favoriteNodeIds.length === 0 ? (
+    <div className="explorer-empty">
+      Star an entity to add it here.
+    </div>
+  ) : (
+    favoriteNodeIds.map((nodeId) => {
+      const node = nodes.find(
+        (item) => item.id === nodeId,
+      )
+
+      if (!node) {
+        return null
+      }
+
+      const definition = entityTypes.find(
+        (item) => item.type === node.type,
+      )
+
+      return (
+        <button
+          type="button"
+          key={node.id}
+          className={
+            selectedNodeId === node.id
+              ? 'explorer-entity active'
+              : 'explorer-entity'
+          }
+          onClick={() => onSelectNode(node.id)}
+        >
+          <span>
+            {definition?.symbol ?? '●'}
+          </span>
+
+          <span>{node.label}</span>
+        </button>
+      )
+    })
+  )}
+</div>
       <div className="nexus-explorer-heading">
         <span>Entities</span>
         <span>{filteredNodes.length}</span>
@@ -204,27 +252,60 @@ export function Explorer({
                     yet
                   </div>
                 ) : (
-                  typeNodes.map((node) => (
-                    <button
-                      type="button"
-                      key={node.id}
-                      className={
-                        selectedNodeId === node.id
-                          ? 'explorer-entity active'
-                          : 'explorer-entity'
-                      }
-                      onClick={() =>
-                        onSelectNode(node.id)
-                      }
-                      title={node.label}
-                    >
-                      <span>
-                        {entityType.symbol}
-                      </span>
+                  typeNodes.map((node) => {
+  const isFavorite =
+    favoriteNodeIds.includes(node.id)
 
-                      <span>{node.label}</span>
-                    </button>
-                  ))
+  return (
+    <div
+      className="explorer-entity-row"
+      key={node.id}
+    >
+      <button
+        type="button"
+        className={
+          selectedNodeId === node.id
+            ? 'explorer-entity active'
+            : 'explorer-entity'
+        }
+        onClick={() =>
+          onSelectNode(node.id)
+        }
+        title={node.label}
+      >
+        <span>
+          {entityType.symbol}
+        </span>
+
+        <span>{node.label}</span>
+      </button>
+
+      <button
+        type="button"
+        className={
+          isFavorite
+            ? 'explorer-favorite active'
+            : 'explorer-favorite'
+        }
+        onClick={() =>
+          onToggleFavorite(node.id)
+        }
+        aria-label={
+          isFavorite
+            ? `Remove ${node.label} from favorites`
+            : `Add ${node.label} to favorites`
+        }
+        title={
+          isFavorite
+            ? 'Remove from favorites'
+            : 'Add to favorites'
+        }
+      >
+        {isFavorite ? '★' : '☆'}
+      </button>
+    </div>
+  )
+})
                 )}
               </div>
             )}

@@ -4,7 +4,11 @@ import {
   useRef,
   useState,
 } from 'react'
+
+import { StatusBar } from './components/StatusBar/StatusBar'
+
 import './App.css'
+
 import {
   EntityCreationWizard,
   type NewEntityDetails,
@@ -176,9 +180,11 @@ function App() {
     createStarterProject(),
   )
 
+  const [favoriteNodeIds, setFavoriteNodeIds] =
+  useState<string[]>([])
+
   const [selectedNodeId, setSelectedNodeId] =
     useState<string | null>(null)
-
 
   const [selectedEdgeId, setSelectedEdgeId] =
     useState<string | null>(null)
@@ -212,6 +218,13 @@ function App() {
       'saved' | 'saving' | 'error'
     >('saved')
 
+    function toggleFavorite(nodeId: string) {
+  setFavoriteNodeIds((current) =>
+    current.includes(nodeId)
+      ? current.filter((id) => id !== nodeId)
+      : [...current, nodeId],
+  )
+}
   const nodes = project.nodes
   const edges = project.edges
 
@@ -750,6 +763,8 @@ function App() {
   nodes={nodes}
   entityTypes={nodeTypes}
   selectedNodeId={selectedNodeId}
+  favoriteNodeIds={favoriteNodeIds}
+  onToggleFavorite={toggleFavorite}
   onSelectNode={(nodeId) => {
     setSelectedNodeId(nodeId)
     setSelectedEdgeId(null)
@@ -1000,39 +1015,11 @@ function App() {
             </div>
           </section>
 
-          <footer className="statusbar">
-            <span>
-              <i
-                className={`status-dot ${
-                  saveStatus === 'error'
-                    ? 'error'
-                    : 'online'
-                }`}
-              />
-
-              {saveStatus === 'saving'
-                ? 'Saving…'
-                : saveStatus === 'error'
-                  ? 'Save failed'
-                  : 'Saved'}
-            </span>
-
-            <span>
-              {nodes.length} nodes
-            </span>
-
-            <span>
-              {edges.length}{' '}
-              relationships
-            </span>
-
-            <span className="statusbar-spacer" />
-
-            <span>
-              ⌘Z Undo · ⇧⌘Z Redo ·
-              ⌘N New · Delete Remove
-            </span>
-          </footer>
+          <StatusBar
+  saveStatus={saveStatus}
+  nodeCount={nodes.length}
+  relationshipCount={edges.length}
+/>
         </main>
 
         <aside className="inspector">
