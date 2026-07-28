@@ -1,0 +1,18 @@
+/* Most sidebar styles remain in App.css during the refactor. */
+
+.explorer-panel-empty {
+  margin: 6px 8px;
+  padding: 9px;
+  border: 1px dashed #2d394b;
+  border-radius: 7px;
+  color: #59677a;
+  font-size: 9px;
+  font-style: italic;
+  text-align: center;
+}
+
+.search-results .saved-view.active {
+  border-color: #6753ce;
+  color: #ffffff;
+  background: #30265e;
+}

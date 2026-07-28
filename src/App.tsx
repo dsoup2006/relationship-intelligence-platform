@@ -1023,15 +1023,16 @@ function App() {
               }`}
             >
               <DashboardView
-  nodes={nodes}
-  edges={edges}
-  analytics={analytics}
-  favoriteNodeIds={favoriteNodeIds}
-  onSelectNode={(nodeId) => {
-    setSelectedNodeId(nodeId)
-    setSelectedEdgeId(null)
-  }}
-/>
+                nodes={nodes}
+                edges={edges}
+                analytics={analytics}
+                favoriteNodeIds={favoriteNodeIds}
+                onSelectNode={(nodeId) => {
+                  setSelectedNodeId(nodeId)
+                  setSelectedEdgeId(null)
+                  setActiveView('graph')
+                }}
+              />
             </div>
           </section>
 
