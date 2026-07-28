@@ -958,6 +958,7 @@ function App() {
                 selectedEdgeId={selectedEdgeId}
                 connectSourceId={connectSourceId}
                 onSelectNode={setSelectedNodeId}
+                focusNodeId={selectedNodeId}
                 onSelectEdge={setSelectedEdgeId}
                 onConnectTarget={handleConnectTarget}
               />

@@ -12,6 +12,7 @@ interface GraphCanvasProps {
   suggestedConnections: SuggestedConnection[]
   showSuggestedConnections: boolean
   selectedNodeId: string | null
+  focusNodeId?: string | null
   selectedEdgeId: string | null
   connectSourceId: string | null
   onSelectNode: (nodeId: string | null) => void
@@ -51,6 +52,7 @@ export function GraphCanvas({
   suggestedConnections,
   showSuggestedConnections,
   selectedNodeId,
+  focusNodeId,
   selectedEdgeId,
   connectSourceId,
   onSelectNode,
@@ -1093,7 +1095,32 @@ export function GraphCanvas({
       cy.getElementById(selectedEdgeId).select()
     }
   }, [selectedNodeId, selectedEdgeId])
+  useEffect(() => {
+    const cy = cytoscapeRef.current
 
+    if (!cy || !focusNodeId) {
+      return
+    }
+
+    const node = cy.getElementById(focusNodeId)
+
+    if (!node.length) {
+      return
+    }
+
+    cy.animate(
+      {
+        center: {
+          eles: node,
+        },
+        zoom: Math.max(cy.zoom(), 1.35),
+      },
+      {
+        duration: 420,
+        easing: 'ease-out',
+      },
+    )
+  }, [focusNodeId])
   useEffect(() => {
     const cy = cytoscapeRef.current
 
