@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { EntityTypeDefinition } from '../../config/entityTypes'
 import type {
@@ -16,6 +16,34 @@ interface ExplorerProps {
   onClearSelection: () => void
 }
 
+function normalize(value: unknown): string {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+}
+
+function nodeMatchesSearch(
+  node: GraphNode,
+  search: string,
+): boolean {
+  if (!search) {
+    return true
+  }
+
+  const searchableValues = [
+    node.label,
+    node.type,
+    node.description,
+    node.address,
+    node.city,
+    ...node.tags,
+  ]
+
+  return searchableValues.some((value) =>
+    normalize(value).includes(search),
+  )
+}
+
 export function Explorer({
   nodes,
   entityTypes,
@@ -23,27 +51,77 @@ export function Explorer({
   onSelectNode,
   onClearSelection,
 }: ExplorerProps) {
-  const [expandedType, setExpandedType] =
-    useState<NodeType | null>('person')
+  const [searchText, setSearchText] =
+    useState('')
+
+  const [expandedTypes, setExpandedTypes] =
+    useState<Set<NodeType>>(
+      () => new Set<NodeType>(['person']),
+    )
+
+  const normalizedSearch =
+    normalize(searchText)
+
+  const filteredNodes = useMemo(
+    () =>
+      nodes.filter((node) =>
+        nodeMatchesSearch(
+          node,
+          normalizedSearch,
+        ),
+      ),
+    [nodes, normalizedSearch],
+  )
+
+  function toggleType(type: NodeType) {
+    setExpandedTypes((current) => {
+      const next = new Set(current)
+
+      if (next.has(type)) {
+        next.delete(type)
+      } else {
+        next.add(type)
+      }
+
+      return next
+    })
+  }
 
   return (
     <nav className="nexus-explorer">
+      <div className="explorer-search">
+        <span aria-hidden="true">⌕</span>
+
+        <input
+          type="search"
+          value={searchText}
+          onChange={(event) =>
+            setSearchText(event.target.value)
+          }
+          placeholder="Search entities"
+          aria-label="Search entities"
+        />
+
+        {searchText && (
+          <button
+            type="button"
+            onClick={() => setSearchText('')}
+            aria-label="Clear search"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
       <div className="nexus-explorer-heading">
         <span>Entities</span>
-        <span>{nodes.length}</span>
+        <span>{filteredNodes.length}</span>
       </div>
 
       <button
         type="button"
-        className={
-          expandedType === null
-            ? 'explorer-category active'
-            : 'explorer-category'
-        }
-        onClick={() => {
-          setExpandedType(null)
-          onClearSelection()
-        }}
+        className="explorer-category"
+        onClick={onClearSelection}
       >
         <span className="explorer-chevron" />
 
@@ -56,18 +134,27 @@ export function Explorer({
         </span>
 
         <span className="explorer-count">
-          {nodes.length}
+          {filteredNodes.length}
         </span>
       </button>
 
       {entityTypes.map((entityType) => {
-        const typeNodes = nodes.filter(
-          (node) =>
-            node.type === entityType.type,
-        )
+        const typeNodes =
+          filteredNodes.filter(
+            (node) =>
+              node.type === entityType.type,
+          )
 
         const isExpanded =
-          expandedType === entityType.type
+          expandedTypes.has(entityType.type)
+
+        const shouldShow =
+          !normalizedSearch ||
+          typeNodes.length > 0
+
+        if (!shouldShow) {
+          return null
+        }
 
         return (
           <div
@@ -82,11 +169,7 @@ export function Explorer({
                   : 'explorer-category'
               }
               onClick={() =>
-                setExpandedType((current) =>
-                  current === entityType.type
-                    ? null
-                    : entityType.type,
-                )
+                toggleType(entityType.type)
               }
             >
               <span
@@ -148,6 +231,12 @@ export function Explorer({
           </div>
         )
       })}
+
+      {filteredNodes.length === 0 && (
+        <div className="explorer-no-results">
+          No entities match “{searchText}”.
+        </div>
+      )}
     </nav>
   )
 }
