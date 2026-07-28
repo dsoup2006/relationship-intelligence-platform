@@ -790,33 +790,7 @@ function App() {
               )}
             </div>
           )}
-<Explorer
-  nodes={nodes}
-  entityTypes={nodeTypes}
-  selectedNodeId={selectedNodeId}
-  onSelectNode={(nodeId) => {
-    setSelectedNodeId(nodeId)
-    setSelectedEdgeId(null)
-    setActiveView('graph')
-  }}
-  onClearSelection={() => {
-    setSelectedNodeId(null)
-    setSelectedEdgeId(null)
-  }}
-/><Explorer
-  nodes={nodes}
-  entityTypes={nodeTypes}
-  selectedNodeId={selectedNodeId}
-  onSelectNode={(nodeId) => {
-    setSelectedNodeId(nodeId)
-    setSelectedEdgeId(null)
-    setActiveView('graph')
-  }}
-  onClearSelection={() => {
-    setSelectedNodeId(null)
-    setSelectedEdgeId(null)
-  }}
-/>
+
           <div className="project-actions">
             <button
               onClick={createNewProject}
