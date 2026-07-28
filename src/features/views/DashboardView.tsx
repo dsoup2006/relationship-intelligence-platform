@@ -39,10 +39,11 @@ export function DashboardView({
   return (
   <div className="dashboard-view">
     <IntelligenceDashboard
-      nodes={nodes}
-      edges={edges}
-      favoriteNodeIds={favoriteNodeIds}
-    />
+  nodes={nodes}
+  edges={edges}
+  favoriteNodeIds={favoriteNodeIds}
+  onSelectNode={onSelectNode}
+/>
 
     <div className="view-heading">
         <div>
