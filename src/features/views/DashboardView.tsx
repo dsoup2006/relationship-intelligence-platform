@@ -1,11 +1,13 @@
 import type { GraphEdge, GraphNode } from '../../types/graph'
 import type { GraphAnalytics } from '../intelligence/analytics'
+import { IntelligenceDashboard } from '../../components/IntelligenceDashboard/IntelligenceDashboard'
 import './WorkspaceViews.css'
 
 interface DashboardViewProps {
   nodes: GraphNode[]
   edges: GraphEdge[]
   analytics: GraphAnalytics
+  favoriteNodeIds: string[]
   onSelectNode: (nodeId: string) => void
 }
 
@@ -13,6 +15,7 @@ export function DashboardView({
   nodes,
   edges,
   analytics,
+  favoriteNodeIds,
   onSelectNode,
 }: DashboardViewProps) {
   const nodeTypes = nodes.reduce<Record<string, number>>(
@@ -34,8 +37,14 @@ export function DashboardView({
         )
 
   return (
-    <div className="dashboard-view">
-      <div className="view-heading">
+  <div className="dashboard-view">
+    <IntelligenceDashboard
+      nodes={nodes}
+      edges={edges}
+      favoriteNodeIds={favoriteNodeIds}
+    />
+
+    <div className="view-heading">
         <div>
           <h2>Network dashboard</h2>
           <p>

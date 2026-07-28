@@ -1023,14 +1023,15 @@ function App() {
               }`}
             >
               <DashboardView
-                nodes={nodes}
-                edges={edges}
-                analytics={analytics}
-                onSelectNode={(nodeId) => {
-                  setSelectedNodeId(nodeId)
-                  setSelectedEdgeId(null)
-                }}
-              />
+  nodes={nodes}
+  edges={edges}
+  analytics={analytics}
+  favoriteNodeIds={favoriteNodeIds}
+  onSelectNode={(nodeId) => {
+    setSelectedNodeId(nodeId)
+    setSelectedEdgeId(null)
+  }}
+/>
             </div>
           </section>
 
