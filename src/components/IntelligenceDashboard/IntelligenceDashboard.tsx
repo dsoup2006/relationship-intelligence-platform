@@ -9,6 +9,7 @@ interface IntelligenceDashboardProps {
   nodes: GraphNode[]
   edges: GraphEdge[]
   favoriteNodeIds: string[]
+  onSelectNode: (nodeId: string) => void
 }
 
 function countByType(
@@ -28,10 +29,7 @@ function getMostConnectedNode(
     return null
   }
 
-  const connectionCounts = new Map<
-    string,
-    number
-  >()
+  const connectionCounts = new Map<string, number>()
 
   nodes.forEach((node) => {
     connectionCounts.set(node.id, 0)
@@ -62,6 +60,7 @@ export function IntelligenceDashboard({
   nodes,
   edges,
   favoriteNodeIds,
+  onSelectNode,
 }: IntelligenceDashboardProps) {
   const peopleCount = countByType(
     nodes,
@@ -75,7 +74,7 @@ export function IntelligenceDashboard({
       node.type === 'school',
   ).length
 
-  const missingPhoneCount = nodes.filter(
+  const peopleMissingPhone = nodes.filter(
     (node) =>
       node.type === 'person' &&
       !nodes.some(
@@ -89,7 +88,10 @@ export function IntelligenceDashboard({
                 edge.source === candidate.id),
           ),
       ),
-  ).length
+  )
+
+  const missingPhoneCount =
+    peopleMissingPhone.length
 
   const mostConnected = getMostConnectedNode(
     nodes,
@@ -132,31 +134,49 @@ export function IntelligenceDashboard({
 
         <article className="intelligence-card">
           <span>Favorites</span>
-          <strong>
-            {favoriteNodeIds.length}
-          </strong>
+          <strong>{favoriteNodeIds.length}</strong>
           <small>Pinned entities</small>
         </article>
 
-        <article className="intelligence-card">
-          <span>Missing Phone</span>
-          <strong>
-            {missingPhoneCount}
-          </strong>
-          <small>
-            People without a linked phone
-          </small>
-        </article>
+        <button
+          type="button"
+          className="intelligence-card intelligence-card-button"
+          disabled={peopleMissingPhone.length === 0}
+          onClick={() => {
+            const firstPerson = peopleMissingPhone[0]
 
-        <article className="intelligence-card featured">
+            if (firstPerson) {
+              onSelectNode(firstPerson.id)
+            }
+          }}
+        >
+          <span>Missing Phone</span>
+          <strong>{missingPhoneCount}</strong>
+          <small>
+            Click to review affected people
+          </small>
+        </button>
+
+        <button
+          type="button"
+          className="intelligence-card intelligence-card-button featured"
+          disabled={!mostConnected}
+          onClick={() => {
+            if (mostConnected) {
+              onSelectNode(mostConnected.id)
+            }
+          }}
+        >
           <span>Most Connected</span>
+
           <strong>
             {mostConnected?.label ?? 'None'}
           </strong>
+
           <small>
-            Highest relationship count
+            Click to open this entity
           </small>
-        </article>
+        </button>
       </div>
     </section>
   )
